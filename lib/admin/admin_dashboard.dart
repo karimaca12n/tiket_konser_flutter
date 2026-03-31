@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:tiket_konser/admin/admin_layout.dart';
 import 'package:tiket_konser/providers/order_provider.dart';
 import 'package:tiket_konser/providers/concert_provider.dart';
-import 'package:fl_chart/fl_chart.dart';
+import 'package:tiket_konser/core/constants.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -28,129 +30,103 @@ class _AdminDashboardState extends State<AdminDashboard> {
     final orderProvider = Provider.of<OrderProvider>(context);
     final concertProvider = Provider.of<ConcertProvider>(context);
 
-    // LOGIKA PERHITUNGAN STATISTIK REALTIME
     double totalSales = 0;
     int ticketsSold = 0;
     int pendingApprovals = 0;
+    int approvedCount = 0;
+    int rejectedCount = 0;
 
     for (var order in orderProvider.orders) {
       if (order.status.toLowerCase() == 'approved' || order.status.toLowerCase() == 'paid') {
         totalSales += order.totalHarga;
         ticketsSold += order.jumlahTiket;
-      }
-      if (order.status.toLowerCase() == 'pending') {
+        approvedCount++;
+      } else if (order.status.toLowerCase() == 'pending') {
         pendingApprovals++;
+      } else if (order.status.toLowerCase() == 'rejected' || order.status.toLowerCase() == 'cancelled') {
+        rejectedCount++;
       }
     }
 
     return AdminLayout(
       currentPath: '/admin/dashboard',
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Stats Cards
-            Row(
-              children: [
-                _StatCard(
-                  title: 'Total Sales', 
-                  value: NumberFormat.compactCurrency(locale: 'id_ID', symbol: 'Rp').format(totalSales), 
-                  icon: Icons.payments, 
-                  color: Colors.blue
-                ),
-                _StatCard(
-                  title: 'Tickets Sold', 
-                  value: ticketsSold.toString(), 
-                  icon: Icons.confirmation_number, 
-                  color: Colors.green
-                ),
-                _StatCard(
-                  title: 'Active Concerts', 
-                  value: concertProvider.concerts.length.toString(), 
-                  icon: Icons.music_note, 
-                  color: Colors.purple
-                ),
-                _StatCard(
-                  title: 'Pending Approvals', 
-                  value: pendingApprovals.toString(), 
-                  icon: Icons.pending_actions, 
-                  color: Colors.orange
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
-            
-            // Charts Row
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: _ChartContainer(
-                    title: 'Sales Overview (Last 6 Months)',
-                    child: SizedBox(
-                      height: 300,
-                      child: LineChart(
-                        LineChartData(
-                          gridData: const FlGridData(show: false),
-                          titlesData: const FlTitlesData(show: false),
-                          borderData: FlBorderData(show: false),
-                          lineBarsData: [
-                            LineChartBarData(
-                              spots: [
-                                const FlSpot(0, 3),
-                                const FlSpot(2, 5),
-                                const FlSpot(4, 4),
-                                const FlSpot(6, 8),
-                                const FlSpot(8, 6),
-                                const FlSpot(10, 7),
-                              ],
-                              isCurved: true,
-                              color: Theme.of(context).primaryColor,
-                              barWidth: 4,
-                              belowBarData: BarAreaData(
-                                show: true,
-                                color: Theme.of(context).primaryColor.withOpacity(0.1),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 24),
-                Expanded(
-                  flex: 1,
-                  child: _ChartContainer(
-                    title: 'Orders by Status',
-                    child: SizedBox(
-                      height: 300,
-                      child: PieChart(
+      title: 'DASHBOARD OVERVIEW',
+      child: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          _StatCard(
+            title: 'TOTAL SALES',
+            value: NumberFormat.compactCurrency(locale: 'id_ID', symbol: 'Rp').format(totalSales),
+            icon: Icons.payments,
+            color: AppColors.secondary,
+          ),
+          const SizedBox(height: 15),
+          _StatCard(
+            title: 'TICKETS SOLD',
+            value: ticketsSold.toString(),
+            icon: Icons.confirmation_number,
+            color: AppColors.approved,
+          ),
+          const SizedBox(height: 15),
+          _StatCard(
+            title: 'ACTIVE EVENTS',
+            value: concertProvider.concerts.length.toString(),
+            icon: Icons.music_note,
+            color: AppColors.primary,
+          ),
+          const SizedBox(height: 15),
+          _StatCard(
+            title: 'PENDING',
+            value: pendingApprovals.toString(),
+            icon: Icons.pending_actions,
+            color: AppColors.pending,
+          ),
+          const SizedBox(height: 30),
+          Text(
+            "QUICK STATS",
+            style: GoogleFonts.orbitron(fontSize: 14, color: AppColors.secondary, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 15),
+          Container(
+            height: 250,
+            padding: const EdgeInsets.all(20),
+            decoration: AppTheme.neonCard,
+            child: orderProvider.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : (orderProvider.orders.isEmpty
+                    ? const Center(child: Text("NO DATA AVAILABLE", style: TextStyle(color: Colors.white24)))
+                    : PieChart(
                         PieChartData(
+                          sectionsSpace: 5,
+                          centerSpaceRadius: 40,
                           sections: [
                             PieChartSectionData(
-                              value: (orderProvider.orders.where((o) => o.status.toLowerCase() == 'approved' || o.status.toLowerCase() == 'paid').length).toDouble(), 
-                              color: Colors.green, title: 'Paid', radius: 50
+                              value: approvedCount.toDouble(),
+                              title: 'PAID',
+                              color: AppColors.approved,
+                              radius: 50,
+                              titleStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black),
                             ),
                             PieChartSectionData(
-                              value: pendingApprovals.toDouble(), 
-                              color: Colors.orange, title: 'Pending', radius: 50
+                              value: pendingApprovals.toDouble(),
+                              title: 'WAIT',
+                              color: AppColors.pending,
+                              radius: 50,
+                              titleStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black),
                             ),
                             PieChartSectionData(
-                              value: (orderProvider.orders.where((o) => o.status.toLowerCase() == 'rejected' || o.status.toLowerCase() == 'cancelled').length).toDouble(), 
-                              color: Colors.red, title: 'Reject', radius: 50
+                              value: rejectedCount.toDouble(),
+                              title: 'FAIL',
+                              color: AppColors.rejected,
+                              radius: 50,
+                              titleStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black),
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+                      )),
+          ),
+          const SizedBox(height: 100),
+        ],
       ),
     );
   }
@@ -166,55 +142,25 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Card(
-        margin: const EdgeInsets.only(right: 16),
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Row(
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: AppTheme.neonCard,
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: 20),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-                child: Icon(icon, color: color, size: 32),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-                    FittedBox(child: Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
-                  ],
-                ),
-              ),
+              Text(title, style: const TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold)),
+              Text(value, style: GoogleFonts.orbitron(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ChartContainer extends StatelessWidget {
-  final String title;
-  final Widget child;
-
-  const _ChartContainer({required this.title, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
-            child,
-          ],
-        ),
+        ],
       ),
     );
   }

@@ -3,9 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:tiket_konser/providers/auth_provider.dart';
 import 'package:tiket_konser/providers/concert_provider.dart';
 import 'package:tiket_konser/providers/order_provider.dart';
-import 'package:tiket_konser/widgets/navbar.dart';
+import 'package:tiket_konser/core/constants.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ConcertDetailPage extends StatefulWidget {
   final String id;
@@ -33,12 +34,12 @@ class _ConcertDetailPageState extends State<ConcertDetailPage> {
     final authProvider = Provider.of<AuthProvider>(context);
     final orderProvider = Provider.of<OrderProvider>(context);
 
-    final concerts = concertProvider.concerts;
-    
     if (concertProvider.isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.primary)));
     }
 
+    final concerts = concertProvider.concerts;
+    
     if (concerts.isEmpty) {
       return const Scaffold(
         appBar: Navbar(),
@@ -51,144 +52,198 @@ class _ConcertDetailPageState extends State<ConcertDetailPage> {
       orElse: () => concerts.first,
     );
 
+    // Logic Expired: Cek apakah tanggal hari ini sudah melewati tanggal konser
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final bool isExpired = concert.date.isBefore(today);
+
     return Scaffold(
-      appBar: const Navbar(), // PERBAIKAN: app_bar -> appBar
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: CircleAvatar(
+          backgroundColor: Colors.black45,
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => context.pop(),
+          ),
+        ),
+      ),
+      extendBodyBehindAppBar: true,
       body: SingleChildScrollView(
         child: Column(
           children: [
+            // Hero Image
             Stack(
               children: [
-                Container(
-                  height: 400,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: NetworkImage(concert.image),
-                      fit: BoxFit.cover,
-                    ),
+                Hero(
+                  tag: 'concert-${concert.id}',
+                  child: Image.network(
+                    concert.image,
+                    height: 350,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
                   ),
                 ),
-                Container(
-                  height: 400,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 40,
-                  left: 40,
-                  right: 40,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        concert.name,
-                        style: const TextStyle(color: Colors.white, fontSize: 48, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on, color: Colors.white70),
-                          const SizedBox(width: 8),
-                          Text(concert.location, style: const TextStyle(color: Colors.white70, fontSize: 18)),
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          AppColors.background.withOpacity(0.8),
+                          AppColors.background,
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ],
             ),
+
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
-              child: Row(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    flex: 2,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  Text(
+                    concert.name.toUpperCase(),
+                    style: GoogleFonts.orbitron(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.secondary,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on, color: AppColors.primary, size: 18),
+                      const SizedBox(width: 5),
+                      Text(concert.location, style: const TextStyle(color: Colors.white70)),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                    decoration: AppTheme.neonCard,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        const Text('About this Concert', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 16),
-                        Text(
-                          concert.description ?? 'No description available.', 
-                          style: const TextStyle(fontSize: 16, height: 1.6),
-                        ),
-                        const SizedBox(height: 32),
-                        const Text('Date & Time', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 16),
-                        ListTile(
-                          leading: const Icon(Icons.calendar_month),
-                          title: Text(DateFormat('EEEE, dd MMMM yyyy').format(concert.date)),
-                          subtitle: const Text('Doors open at 18:00'),
+                        _buildInfoItem(Icons.calendar_today, DateFormat('dd MMM yyyy').format(concert.date)),
+                        _buildInfoItem(Icons.access_time, '19:00'),
+                        _buildInfoItem(
+                          Icons.confirmation_num, 
+                          isExpired ? 'EXPIRED' : 'AVAILABLE',
+                          color: isExpired ? AppColors.rejected : AppColors.secondary,
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 40),
-                  Expanded(
-                    flex: 1,
-                    child: Card(
-                      elevation: 8,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text('Ticket Price', style: TextStyle(color: Colors.grey)),
-                            const SizedBox(height: 8),
-                            Text(
-                              NumberFormat.currency(locale: 'id_ID', symbol: 'IDR ', decimalDigits: 0).format(concert.price),
-                              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor),
-                            ),
-                            const SizedBox(height: 24),
-                            const Divider(),
-                            const SizedBox(height: 16),
-                            const Text('• Single Entry Ticket\n• General Admission\n• Tax Included', style: TextStyle(height: 1.8)),
-                            const SizedBox(height: 32),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 50,
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  if (!authProvider.isAuthenticated) {
-                                    context.push('/login');
-                                    return;
-                                  }
-                                  
-                                  final success = await orderProvider.createOrder(
-                                    concert, 
-                                    authProvider.user!.id
-                                  );
-                                  
-                                  if (success) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Order placed successfully!')),
-                                    );
-                                    context.go('/orders');
-                                  }
-                                },
-                                child: Text(authProvider.isAuthenticated ? 'Buy Ticket Now' : 'Login to Buy'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                  const SizedBox(height: 30),
+                  Text(
+                    "DESCRIPTION",
+                    style: GoogleFonts.orbitron(fontSize: 14, color: AppColors.primary, fontWeight: FontWeight.bold),
                   ),
+                  const SizedBox(height: 10),
+                  Text(
+                    concert.description ?? "Experience an unforgettable night of music and lights. Don't miss this retro modern concert experience.",
+                    style: const TextStyle(color: Colors.white70, height: 1.6),
+                  ),
+                  const SizedBox(height: 120),
                 ],
               ),
             ),
           ],
         ),
       ),
+      bottomSheet: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          border: Border(top: BorderSide(color: AppColors.secondary.withOpacity(0.3))),
+        ),
+        child: Row(
+          children: [
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("PRICE", style: TextStyle(color: Colors.white54, fontSize: 10)),
+                Text(
+                  NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0).format(concert.price),
+                  style: const TextStyle(color: AppColors.approved, fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+              ],
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: isExpired ? null : () async {
+                  if (!authProvider.isAuthenticated) {
+                    context.push('/login');
+                    return;
+                  }
+                  final success = await orderProvider.createOrder(concert, authProvider.user!.id);
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('BOOKING SUCCESSFUL!')),
+                    );
+                    context.go('/orders');
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isExpired ? Colors.grey.withOpacity(0.3) : AppColors.secondary,
+                  foregroundColor: isExpired ? Colors.white38 : Colors.black,
+                ),
+                child: Text(
+                  isExpired ? "EXPIRED" : "BOOK NOW", 
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoItem(IconData icon, String text, {Color? color}) {
+    return Expanded(
+      child: Column(
+        children: [
+          Icon(icon, color: color ?? AppColors.secondary, size: 20),
+          const SizedBox(height: 5),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              text, 
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11, 
+                fontWeight: FontWeight.bold,
+                color: color ?? Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class Navbar extends StatelessWidget implements PreferredSizeWidget {
+  const Navbar({super.key});
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
     );
   }
 }

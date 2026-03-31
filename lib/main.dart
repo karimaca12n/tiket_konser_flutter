@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:tiket_konser/core/constants.dart';
 import 'package:tiket_konser/pages/login_page.dart';
 import 'package:tiket_konser/pages/register_page.dart';
 import 'package:tiket_konser/pages/home_page.dart';
 import 'package:tiket_konser/pages/concert_detail_page.dart';
 import 'package:tiket_konser/pages/user_orders_page.dart';
+import 'package:tiket_konser/pages/profile_page.dart';
 import 'package:tiket_konser/admin/admin_dashboard.dart';
 import 'package:tiket_konser/admin/admin_concerts.dart';
 import 'package:tiket_konser/admin/admin_orders.dart';
@@ -14,6 +16,7 @@ import 'package:tiket_konser/admin/admin_users.dart';
 import 'package:tiket_konser/providers/auth_provider.dart';
 import 'package:tiket_konser/providers/concert_provider.dart';
 import 'package:tiket_konser/providers/order_provider.dart';
+import 'package:tiket_konser/widgets/main_scaffold.dart';
 
 void main() {
   runApp(
@@ -33,12 +36,20 @@ final GoRouter _router = GoRouter(
   routes: [
     GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
     GoRoute(path: '/register', builder: (context, state) => const RegisterPage()),
-    GoRoute(path: '/home', builder: (context, state) => const HomePage()),
-    GoRoute(
-      path: '/concert/:id',
-      builder: (context, state) => ConcertDetailPage(id: state.pathParameters['id']!),
+    
+    // User Shell with Bottom Nav
+    ShellRoute(
+      builder: (context, state, child) => MainScaffold(child: child),
+      routes: [
+        GoRoute(path: '/home', builder: (context, state) => const HomePage()),
+        GoRoute(path: '/orders', builder: (context, state) => const UserOrdersPage()),
+        GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
+        GoRoute(
+          path: '/concert/:id',
+          builder: (context, state) => ConcertDetailPage(id: state.pathParameters['id']!),
+        ),
+      ],
     ),
-    GoRoute(path: '/orders', builder: (context, state) => const UserOrdersPage()),
     
     // Admin Routes
     GoRoute(path: '/admin/dashboard', builder: (context, state) => const AdminDashboard()),
@@ -50,12 +61,10 @@ final GoRouter _router = GoRouter(
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final loggingIn = state.matchedLocation == '/login' || state.matchedLocation == '/register';
     
-    // Protected routes
-    if (!auth.isAuthenticated && !loggingIn && (state.matchedLocation.startsWith('/admin') || state.matchedLocation == '/orders')) {
+    if (!auth.isAuthenticated && !loggingIn && (state.matchedLocation.startsWith('/admin') || state.matchedLocation == '/orders' || state.matchedLocation == '/profile')) {
       return '/login';
     }
     
-    // Prevent logged in users from seeing login page
     if (auth.isAuthenticated && loggingIn) {
       return auth.isAdmin ? '/admin/dashboard' : '/home';
     }
@@ -70,28 +79,47 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'SoraiFest - Konser Tiket App',
+      title: 'SoraiFest',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF673AB7),
-          primary: const Color(0xFF673AB7),
-          secondary: const Color(0xFF03DAC6),
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: AppColors.background,
+        colorScheme: ColorScheme.dark(
+          primary: AppColors.primary,
+          secondary: AppColors.secondary,
+          surface: AppColors.surface,
+          background: AppColors.background,
         ),
-        textTheme: GoogleFonts.poppinsTextTheme(),
+        textTheme: GoogleFonts.orbitronTextTheme(ThemeData.dark().textTheme).copyWith(
+          bodyMedium: GoogleFonts.orbitron(color: Colors.white, fontSize: 14),
+          titleLarge: GoogleFonts.orbitron(color: AppColors.secondary, fontWeight: FontWeight.bold, fontSize: 20),
+          headlineMedium: GoogleFonts.orbitron(color: AppColors.primary, fontWeight: FontWeight.bold),
+        ),
         inputDecorationTheme: InputDecorationTheme(
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           filled: true,
-          fillColor: Colors.grey[50],
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          fillColor: AppColors.surface,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: AppColors.secondary.withOpacity(0.5)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: AppColors.secondary.withOpacity(0.3)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          ),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF673AB7),
+            backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
-            minimumSize: const Size(0, 50),
+            elevation: 8,
+            shadowColor: AppColors.primary.withOpacity(0.5),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            padding: const EdgeInsets.symmetric(vertical: 16),
           ),
         ),
       ),

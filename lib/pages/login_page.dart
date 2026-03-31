@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tiket_konser/providers/auth_provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tiket_konser/core/constants.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -24,118 +26,162 @@ class _LoginPageState extends State<LoginPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: AppColors.secondary),
           onPressed: () => context.go('/home'),
         ),
       ),
       extendBodyBehindAppBar: true,
-      body: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 400),
-          padding: const EdgeInsets.all(32),
-          child: Card(
-            elevation: 8,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Welcome Back',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor,
-                    ),
+      body: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          color: AppColors.background,
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(30),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 20),
+                Icon(Icons.rocket_launch, size: 80, color: AppColors.primary),
+                const SizedBox(height: 20),
+                Text(
+                  'LOGIN',
+                  style: GoogleFonts.orbitron(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.secondary,
+                    letterSpacing: 4,
+                    shadows: [
+                      const Shadow(color: AppColors.secondary, blurRadius: 15),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  const Text('Please login to your account'),
-                  const SizedBox(height: 32),
-                  
-                  // Role Selector
-                  Row(
+                ),
+                const SizedBox(height: 40),
+                
+                // Role Toggle
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.secondary.withOpacity(0.3)),
+                  ),
+                  child: Row(
                     children: [
                       Expanded(
-                        child: ChoiceChip(
-                          label: const Center(child: Text('User')),
-                          selected: _selectedRole == 'user',
-                          onSelected: (selected) {
-                            if (selected) setState(() => _selectedRole = 'user');
-                          },
+                        child: _RoleButton(
+                          label: 'USER',
+                          isSelected: _selectedRole == 'user',
+                          onTap: () => setState(() => _selectedRole = 'user'),
                         ),
                       ),
-                      const SizedBox(width: 12),
                       Expanded(
-                        child: ChoiceChip(
-                          label: const Center(child: Text('Admin')),
-                          selected: _selectedRole == 'admin',
-                          onSelected: (selected) {
-                            if (selected) setState(() => _selectedRole = 'admin');
-                          },
+                        child: _RoleButton(
+                          label: 'ADMIN',
+                          isSelected: _selectedRole == 'admin',
+                          onTap: () => setState(() => _selectedRole = 'admin'),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                ),
+                const SizedBox(height: 30),
 
-                  TextField(
-                    controller: _emailController,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(),
-                    ),
+                TextField(
+                  controller: _emailController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    labelText: 'EMAIL',
+                    prefixIcon: Icon(Icons.email_outlined, color: AppColors.secondary),
                   ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Password',
-                      prefixIcon: Icon(Icons.lock_outline),
-                      border: OutlineInputBorder(),
-                    ),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    labelText: 'PASSWORD',
+                    prefixIcon: Icon(Icons.lock_outline, color: AppColors.secondary),
                   ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: authProvider.isLoading
-                          ? null
-                          : () async {
-                              final success = await authProvider.login(
-                                _emailController.text,
-                                _passwordController.text,
-                                _selectedRole,
-                              );
-                              if (success) {
-                                if (_selectedRole == 'admin') {
-                                  context.go('/admin/dashboard');
-                                } else {
-                                  context.go('/home');
-                                }
+                ),
+                const SizedBox(height: 40),
+                
+                SizedBox(
+                  width: double.infinity,
+                  child: authProvider.isLoading
+                      ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                      : ElevatedButton(
+                          onPressed: () async {
+                            final success = await authProvider.login(
+                              _emailController.text,
+                              _passwordController.text,
+                              _selectedRole,
+                            );
+                            if (success) {
+                              if (_selectedRole == 'admin') {
+                                context.go('/admin/dashboard');
                               } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Login failed. Please check your credentials.')),
-                                );
+                                context.go('/home');
                               }
-                            },
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                      child: authProvider.isLoading
-                          ? const CircularProgressIndicator()
-                          : const Text('Login'),
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  backgroundColor: AppColors.rejected,
+                                  content: Text('ACCESS DENIED: Check Credentials'),
+                                ),
+                              );
+                            }
+                          },
+                          child: const Text('ENGAGE'),
+                        ),
+                ),
+                const SizedBox(height: 30),
+                TextButton(
+                  onPressed: () => context.go('/register'),
+                  child: Text(
+                    'CREATE NEW ACCOUNT',
+                    style: TextStyle(
+                      color: AppColors.secondary.withOpacity(0.8),
+                      letterSpacing: 1.5,
+                      fontSize: 12,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () => context.go('/register'),
-                    child: const Text('Don\'t have an account? Register'),
-                  ),
-                ],
-              ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RoleButton extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _RoleButton({required this.label, required this.isSelected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          gradient: isSelected ? AppColors.retroGradient : null,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: GoogleFonts.orbitron(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: isSelected ? Colors.white : Colors.white24,
             ),
           ),
         ),

@@ -26,99 +26,87 @@ class _AdminConcertsPageState extends State<AdminConcertsPage> {
 
     return AdminLayout(
       currentPath: '/admin/concerts',
+      title: 'MANAGE CONCERTS',
       child: Column(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  onChanged: (value) => provider.setSearchQuery(value),
-                  decoration: const InputDecoration(
-                    hintText: 'Search concerts...',
-                    prefixIcon: Icon(Icons.search),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    onChanged: (value) => provider.setSearchQuery(value),
+                    decoration: const InputDecoration(
+                      hintText: 'Search concerts...',
+                      prefixIcon: Icon(Icons.search, color: Colors.cyan),
+                      isDense: true,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              ElevatedButton.icon(
-                onPressed: () => _showConcertDialog(context),
-                icon: const Icon(Icons.add),
-                label: const Text('Add Concert'),
-                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20)),
-              ),
-            ],
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: () => _showConcertDialog(context),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+                  ),
+                  child: const Icon(Icons.add),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 24),
           Expanded(
-            child: Card(
-              child: provider.isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : (provider.concerts.isEmpty 
-                      ? const Center(child: Text('No concerts found.'))
-                      : SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: DataTable(
-                            columnSpacing: 40,
-                            columns: const [
-                              DataColumn(label: Text('Image')),
-                              DataColumn(label: Text('Concert Name')),
-                              DataColumn(label: Text('Date')),
-                              DataColumn(label: Text('Location')),
-                              DataColumn(label: Text('Price')),
-                              DataColumn(label: Text('Description')), // Tambahkan kolom Deskripsi
-                              DataColumn(label: Text('Actions')),
-                            ],
-                            rows: provider.concerts.map((concert) {
-                              return DataRow(cells: [
-                                DataCell(
-                                  Container(
-                                    width: 80,
-                                    height: 50,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(color: Colors.grey[300]!),
+            child: Scrollbar(
+              thumbVisibility: true,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: provider.isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : (provider.concerts.isEmpty 
+                        ? const Center(child: Text('No concerts found.'))
+                        : SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: DataTable(
+                              columnSpacing: 30,
+                              columns: const [
+                                DataColumn(label: Text('IMAGE')),
+                                DataColumn(label: Text('NAME')),
+                                DataColumn(label: Text('DATE')),
+                                DataColumn(label: Text('LOCATION')),
+                                DataColumn(label: Text('PRICE')),
+                                DataColumn(label: Text('ACTIONS')),
+                              ],
+                              rows: provider.concerts.map((concert) {
+                                return DataRow(cells: [
+                                  DataCell(
+                                    Image.network(
+                                      concert.image,
+                                      width: 50,
+                                      height: 30,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_,__,___) => const Icon(Icons.broken_image, size: 20),
                                     ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(
-                                        concert.image,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
+                                  ),
+                                  DataCell(Text(concert.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+                                  DataCell(Text(DateFormat('dd MMM yy').format(concert.date), style: const TextStyle(fontSize: 11))),
+                                  DataCell(Text(concert.location, style: const TextStyle(fontSize: 11))),
+                                  DataCell(Text(NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0).format(concert.price), style: const TextStyle(fontSize: 11))),
+                                  DataCell(Row(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.edit, color: Colors.blue, size: 18), 
+                                        onPressed: () => _showConcertDialog(context, concert: concert),
                                       ),
-                                    ),
-                                  ),
-                                ),
-                                DataCell(Text(concert.name, style: const TextStyle(fontWeight: FontWeight.bold))),
-                                DataCell(Text(DateFormat('dd MMM yyyy').format(concert.date))),
-                                DataCell(Text(concert.location)),
-                                DataCell(Text(NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0).format(concert.price))),
-                                DataCell(
-                                  SizedBox(
-                                    width: 150,
-                                    child: Text(
-                                      concert.description ?? '-', 
-                                      maxLines: 1, 
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                                    ),
-                                  ),
-                                ),
-                                DataCell(Row(
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit, color: Colors.blue), 
-                                      onPressed: () => _showConcertDialog(context, concert: concert),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete, color: Colors.red),
-                                      onPressed: () => provider.deleteConcert(concert.id),
-                                    ),
-                                  ],
-                                )),
-                              ]);
-                            }).toList(),
-                          ),
-                        )),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete, color: Colors.red, size: 18),
+                                        onPressed: () => provider.deleteConcert(concert.id),
+                                      ),
+                                    ],
+                                  )),
+                                ]);
+                              }).toList(),
+                            ),
+                          )),
+              ),
             ),
           ),
         ],
@@ -144,20 +132,17 @@ class _AdminConcertsPageState extends State<AdminConcertsPage> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Text(isEdit ? 'Edit Concert' : 'Add New Concert'),
+          title: Text(isEdit ? 'EDIT CONCERT' : 'ADD CONCERT'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Concert Name')),
+                TextField(controller: nameController, decoration: const InputDecoration(labelText: 'NAME')),
                 const SizedBox(height: 12),
                 TextField(
                   controller: dateController,
                   readOnly: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Date',
-                    suffixIcon: Icon(Icons.calendar_today),
-                  ),
+                  decoration: const InputDecoration(labelText: 'DATE', suffixIcon: Icon(Icons.calendar_today)),
                   onTap: () async {
                     final DateTime? picked = await showDatePicker(
                       context: context,
@@ -165,7 +150,7 @@ class _AdminConcertsPageState extends State<AdminConcertsPage> {
                       firstDate: DateTime(2000),
                       lastDate: DateTime(2101),
                     );
-                    if (picked != null && picked != selectedDate) {
+                    if (picked != null) {
                       setDialogState(() {
                         selectedDate = picked;
                         dateController.text = DateFormat('yyyy-MM-dd').format(picked);
@@ -174,39 +159,31 @@ class _AdminConcertsPageState extends State<AdminConcertsPage> {
                   },
                 ),
                 const SizedBox(height: 12),
-                TextField(controller: locationController, decoration: const InputDecoration(labelText: 'Location')),
+                TextField(controller: locationController, decoration: const InputDecoration(labelText: 'LOCATION')),
                 const SizedBox(height: 12),
-                TextField(controller: priceController, decoration: const InputDecoration(labelText: 'Price'), keyboardType: TextInputType.number),
+                TextField(controller: priceController, decoration: const InputDecoration(labelText: 'PRICE'), keyboardType: TextInputType.number),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: descController, 
-                  decoration: const InputDecoration(labelText: 'Description'), 
-                  maxLines: 3,
-                ),
+                TextField(controller: descController, decoration: const InputDecoration(labelText: 'DESCRIPTION'), maxLines: 3),
                 const SizedBox(height: 16),
                 InkWell(
                   onTap: () async {
                     final result = await FilePicker.platform.pickFiles(type: FileType.image);
-                    if (result != null) {
-                      setDialogState(() => selectedImage = result.files.first);
-                    }
+                    if (result != null) setDialogState(() => selectedImage = result.files.first);
                   },
                   child: Container(
                     height: 100,
                     width: double.infinity,
-                    decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(8)),
+                    decoration: BoxDecoration(border: Border.all(color: Colors.white24), borderRadius: BorderRadius.circular(8)),
                     child: selectedImage != null
                         ? Image.memory(selectedImage!.bytes!, fit: BoxFit.cover)
-                        : (isEdit 
-                            ? Image.network(concert.image, fit: BoxFit.cover, errorBuilder: (_,__,___) => const Icon(Icons.image))
-                            : const Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.cloud_upload), Text('Upload Image')])),
+                        : (isEdit ? Image.network(concert.image, fit: BoxFit.cover) : const Icon(Icons.cloud_upload)),
                   ),
                 ),
               ],
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCEL')),
             ElevatedButton(
               onPressed: () async {
                 final data = {
@@ -216,17 +193,12 @@ class _AdminConcertsPageState extends State<AdminConcertsPage> {
                   'description': descController.text,
                   'date': DateFormat('yyyy-MM-dd').format(selectedDate),
                 };
-
-                bool success;
-                if (isEdit) {
-                  success = await context.read<ConcertProvider>().updateConcert(concert.id, data, selectedImage);
-                } else {
-                  success = await context.read<ConcertProvider>().addConcert(data, selectedImage);
-                }
-
+                bool success = isEdit 
+                  ? await context.read<ConcertProvider>().updateConcert(concert.id, data, selectedImage)
+                  : await context.read<ConcertProvider>().addConcert(data, selectedImage);
                 if (success && context.mounted) Navigator.pop(context);
               },
-              child: Text(isEdit ? 'Update Concert' : 'Save Concert'),
+              child: Text(isEdit ? 'UPDATE' : 'SAVE'),
             ),
           ],
         ),

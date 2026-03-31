@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:tiket_konser/admin/admin_layout.dart';
 import 'package:tiket_konser/providers/order_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:tiket_konser/core/constants.dart';
 
 class AdminOrdersPage extends StatefulWidget {
   const AdminOrdersPage({super.key});
@@ -24,66 +25,75 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
 
     return AdminLayout(
       currentPath: '/admin/orders',
+      title: 'ORDER REQUESTS',
       child: Column(
         children: [
-          TextField(
-            onChanged: (value) => provider.setSearchQuery(value),
-            decoration: const InputDecoration(
-              hintText: 'Search by user or concert name...',
-              prefixIcon: Icon(Icons.search),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: TextField(
+              onChanged: (value) => provider.setSearchQuery(value),
+              decoration: const InputDecoration(
+                hintText: 'Search by user or concert...',
+                prefixIcon: Icon(Icons.search, color: Colors.cyan),
+                isDense: true,
+              ),
             ),
           ),
-          const SizedBox(height: 24),
           Expanded(
-            child: Card(
-              child: provider.isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : (provider.orders.isEmpty 
-                      ? const Center(child: Text('No orders found.'))
-                      : SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: DataTable(
-                            columns: const [
-                              DataColumn(label: Text('Order ID')),
-                              DataColumn(label: Text('User')),
-                              DataColumn(label: Text('Concert')),
-                              DataColumn(label: Text('Date')),
-                              DataColumn(label: Text('Status')),
-                              DataColumn(label: Text('Actions')),
-                            ],
-                            rows: provider.orders.map((order) {
-                              // Safely get ID substring
-                              String displayId = order.id.length > 8 
-                                  ? '#${order.id.substring(0, 8)}' 
-                                  : '#${order.id}';
-
-                              return DataRow(cells: [
-                                DataCell(Text(displayId)),
-                                DataCell(Text(order.user?.name ?? 'Unknown')),
-                                DataCell(Text(order.concert?.name ?? 'Unknown')),
-                                DataCell(Text(DateFormat('dd MMM yyyy HH:mm').format(order.createdAt))),
-                                DataCell(_StatusBadge(status: order.status)),
-                                DataCell(Row(
+            child: Scrollbar(
+              thumbVisibility: true,
+              child: ListView(
+                padding: const EdgeInsets.all(20),
+                children: [
+                  if (provider.isLoading)
+                    const Center(child: CircularProgressIndicator())
+                  else if (provider.orders.isEmpty)
+                    const Center(child: Text('No orders found.'))
+                  else
+                    Center( // Tambahkan Center di sini agar tabel berada di tengah
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: DataTable(
+                          columnSpacing: 20,
+                          columns: const [
+                            DataColumn(label: Center(child: Text('ID'))),
+                            DataColumn(label: Center(child: Text('USER'))),
+                            DataColumn(label: Center(child: Text('CONCERT'))),
+                            DataColumn(label: Center(child: Text('STATUS'))),
+                            DataColumn(label: Center(child: Text('ACTIONS'))),
+                          ],
+                          rows: provider.orders.map((order) {
+                            String displayId = order.id.length > 5 ? '#${order.id.substring(0, 5)}' : '#${order.id}';
+                            return DataRow(cells: [
+                              DataCell(Center(child: Text(displayId, style: const TextStyle(fontSize: 10)))),
+                              DataCell(Center(child: Text(order.user?.name ?? 'Unknown', style: const TextStyle(fontSize: 11)))),
+                              DataCell(Center(child: Text(order.concert?.name ?? 'Unknown', style: const TextStyle(fontSize: 11)))),
+                              DataCell(Center(child: _StatusBadge(status: order.status))),
+                              DataCell(Center(
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
                                     if (order.status.toLowerCase() == 'pending') ...[
                                       IconButton(
-                                        icon: const Icon(Icons.check_circle, color: Colors.green),
+                                        icon: const Icon(Icons.check_circle, color: Colors.green, size: 20),
                                         onPressed: () => provider.updateOrderStatus(order.id, 'approved'),
-                                        tooltip: 'Approve',
                                       ),
                                       IconButton(
-                                        icon: const Icon(Icons.cancel, color: Colors.red),
+                                        icon: const Icon(Icons.cancel, color: Colors.red, size: 20),
                                         onPressed: () => provider.updateOrderStatus(order.id, 'rejected'),
-                                        tooltip: 'Reject',
                                       ),
                                     ] else
-                                      const Text('-', style: TextStyle(color: Colors.grey)),
+                                      const Text('-', style: TextStyle(color: Colors.white24)),
                                   ],
-                                )),
-                              ]);
-                            }).toList(),
-                          ),
-                        )),
+                                ),
+                              )),
+                            ]);
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ],
@@ -101,25 +111,18 @@ class _StatusBadge extends StatelessWidget {
     Color color;
     switch (status.toLowerCase()) {
       case 'approved':
-      case 'paid':
-        color = Colors.green; break;
-      case 'rejected':
-      case 'cancelled':
-        color = Colors.red; break;
-      default: color = Colors.orange;
+      case 'paid': color = AppColors.approved; break;
+      case 'rejected': color = AppColors.rejected; break;
+      default: color = AppColors.pending;
     }
-
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color, width: 1),
       ),
-      child: Text(
-        status.toUpperCase(),
-        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold),
-      ),
+      child: Text(status.toUpperCase(), style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.bold)),
     );
   }
 }

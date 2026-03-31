@@ -1,14 +1,23 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart'; // Untuk kIsWeb
 
 class ApiService {
-  // Base URL diatur ke root API agar bisa mengakses /login dan /konser
+  // Fungsi untuk mendapatkan IP yang tepat berdasarkan platform
+  static String get baseUrl {
+    if (kIsWeb) {
+      return 'http://localhost:8081/api/';
+    } else {
+      // Jika di Android Emulator, gunakan 10.0.2.2
+      return 'http://10.0.2.2:8081/api/';
+    }
+  }
+
   final Dio _dio = Dio(BaseOptions(
-    baseUrl: 'http://localhost:8081/api',
+    baseUrl: baseUrl,
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 10),
     headers: {
       'Accept': 'application/json',
-      // Content-Type dihapus agar Dio bisa handle Multipart/form-data secara otomatis
     },
   ));
 

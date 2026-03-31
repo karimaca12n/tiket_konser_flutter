@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:tiket_konser/api/api_service.dart';
 import 'package:tiket_konser/models/user_model.dart';
 import 'package:dio/dio.dart';
+import 'package:http_parser/http_parser.dart';
 
 class AuthProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
@@ -16,7 +17,6 @@ class AuthProvider extends ChangeNotifier {
   bool get isAdmin => _user?.role == 'admin';
   bool get isAuthenticated => _user != null;
 
-  // Getter untuk mengambil user yang sudah di-filter berdasarkan search query
   List<UserModel> get filteredUsers {
     return _allUsers.where((u) => 
       u.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -33,7 +33,7 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      final response = await _apiService.dio.get('/users');
+      final response = await _apiService.dio.get('users');
       if (response.statusCode == 200) {
         _allUsers = (response.data as List).map((e) => UserModel.fromJson(e)).toList();
       }
@@ -44,15 +44,52 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> updateProfile({required String name, dynamic imageFile}) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      Map<String, dynamic> dataMap = {
+        'nama': name,
+      };
+
+      if (imageFile != null) {
+        dataMap['avatar'] = await MultipartFile.fromBytes(
+          imageFile.bytes!,
+          filename: imageFile.name,
+          contentType: MediaType('image', 'jpeg'),
+        );
+      }
+
+      FormData formData = FormData.fromMap(dataMap);
+      final response = await _apiService.dio.post('users/${_user!.id}', data: formData);
+
+      if (response.statusCode == 200) {
+        final userData = response.data['user'];
+        if (userData != null) {
+          _user = UserModel.fromJson(userData);
+        }
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      debugPrint('Update profile error: $e');
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
+
   Future<bool> login(String email, String password, String role) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      final response = await _apiService.dio.post('/login', data: {
+      final response = await _apiService.dio.post('login', data: {
         'email': email,
         'password': password,
-        'role': role,
       });
 
       if (response.statusCode == 200) {
@@ -65,19 +102,8 @@ class AuthProvider extends ChangeNotifier {
         return true;
       }
     } catch (e) {
-      debugPrint('Login API error: $e');
-      
-      if (email == 'admin@gmail.com' && password == 'admin123' && role == 'admin') {
-        _user = UserModel(
-          id: 'admin-1',
-          name: 'Admin Testing',
-          email: email,
-          role: 'admin',
-          token: 'mock-token',
-        );
-        _isLoading = false;
-        notifyListeners();
-        return true;
+      if (e is DioException) {
+        debugPrint('Login API error details: ${e.response?.data}');
       }
     }
 
@@ -97,12 +123,11 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _apiService.dio.post('/register', data: {
+      final response = await _apiService.dio.post('register', data: {
         'nama': name,
         'username': email.split('@')[0],
         'email': email,
         'password': password,
-        'role': 'user',
       });
 
       if (response.statusCode == 201 || response.statusCode == 200) {
@@ -111,9 +136,6 @@ class AuthProvider extends ChangeNotifier {
         return true;
       }
     } catch (e) {
-      if (e is DioException) {
-        debugPrint('Register error response: ${e.response?.data}');
-      }
       debugPrint('Register error: $e');
     }
 

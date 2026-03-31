@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tiket_konser/providers/order_provider.dart';
 import 'package:tiket_konser/providers/auth_provider.dart';
-import 'package:tiket_konser/widgets/navbar.dart';
+import 'package:tiket_konser/core/constants.dart';
 import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class UserOrdersPage extends StatefulWidget {
   const UserOrdersPage({super.key});
@@ -27,125 +28,195 @@ class _UserOrdersPageState extends State<UserOrdersPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const Navbar(),
-      body: Padding(
-        padding: const EdgeInsets.all(40.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('My Orders', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
-            TextField(
+      appBar: AppBar(
+        title: Text('MY TICKETS', style: GoogleFonts.orbitron(fontSize: 18, fontWeight: FontWeight.bold)),
+        backgroundColor: AppColors.background,
+        elevation: 0,
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: TextField(
               onChanged: (value) => context.read<OrderProvider>().setSearchQuery(value),
               decoration: const InputDecoration(
-                hintText: 'Search orders...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+                hintText: 'Search tickets...',
+                prefixIcon: Icon(Icons.search, color: AppColors.secondary),
               ),
             ),
-            const SizedBox(height: 24),
-            Expanded(
-              child: Consumer<OrderProvider>(
-                builder: (context, provider, child) {
-                  if (provider.isLoading) return const Center(child: CircularProgressIndicator());
-                  if (provider.orders.isEmpty) return const Center(child: Text('No orders found.'));
+          ),
+          Expanded(
+            child: Consumer<OrderProvider>(
+              builder: (context, provider, child) {
+                if (provider.isLoading) return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+                if (provider.orders.isEmpty) return const Center(child: Text('NO TICKETS FOUND'));
 
-                  return ListView.builder(
-                    itemCount: provider.orders.length,
-                    itemBuilder: (context, index) {
-                      final order = provider.orders[index];
-                      final isApproved = order.status == 'approved' || order.status == 'paid';
-
-                      // Handle image URL
-                      String imageUrl = order.concert?.image ?? '';
-                      if (imageUrl.isNotEmpty && !imageUrl.startsWith('http')) {
-                        imageUrl = 'http://localhost:8081/uploads/gambar/$imageUrl';
-                      }
-
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(16),
-                          leading: Container(
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              image: imageUrl.isNotEmpty 
-                                ? DecorationImage(
-                                    image: NetworkImage(imageUrl),
-                                    fit: BoxFit.cover,
-                                  )
-                                : null,
-                            ),
-                            child: imageUrl.isEmpty ? const Icon(Icons.music_note) : null,
-                          ),
-                          title: Text(order.concert?.name ?? 'Unknown Concert', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Ordered on: ${DateFormat('dd MMM yyyy').format(order.createdAt)}'),
-                              const SizedBox(height: 4),
-                              _StatusBadge(status: order.status),
-                            ],
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (isApproved)
-                                ElevatedButton.icon(
-                                  onPressed: () {
-                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Downloading ticket...')));
-                                  },
-                                  icon: const Icon(Icons.download),
-                                  label: const Text('Download Ticket'),
-                                )
-                              else
-                                const Text('Status: Processing', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                              const SizedBox(width: 8),
-                              IconButton(
-                                icon: const Icon(Icons.qr_code),
-                                onPressed: isApproved ? () {
-                                  _showTicketDialog(context, order);
-                                } : null,
-                                tooltip: 'View Ticket',
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: provider.orders.length,
+                  itemBuilder: (context, index) {
+                    final order = provider.orders[index];
+                    return _OrderCard(order: order);
+                  },
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OrderCard extends StatelessWidget {
+  final dynamic order;
+  const _OrderCard({required this.order});
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isPaid = order.status.toLowerCase() == 'approved' || order.status.toLowerCase() == 'paid';
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 15),
+      padding: const EdgeInsets.all(15),
+      decoration: AppTheme.neonCard,
+      child: Row(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              image: order.concert?.image != null && order.concert!.image.isNotEmpty
+                ? DecorationImage(
+                    image: NetworkImage(order.concert!.image),
+                    fit: BoxFit.cover,
+                  )
+                : null,
+            ),
+            child: order.concert?.image == null || order.concert!.image.isEmpty 
+                ? const Icon(Icons.music_note, color: Colors.white24) 
+                : null,
+          ),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  order.concert?.name.toUpperCase() ?? 'CONCERT',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 5),
+                _StatusBadge(status: order.status),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(
+              isPaid ? Icons.qr_code_scanner : Icons.hourglass_empty,
+              color: isPaid ? AppColors.approved : AppColors.pending,
+            ),
+            onPressed: isPaid ? () => _showTicket(context, order) : null,
+          ),
+        ],
       ),
     );
   }
 
-  void _showTicketDialog(BuildContext context, dynamic order) {
+  void _showTicket(BuildContext context, dynamic order) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Your Ticket'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 200,
-              height: 200,
-              color: Colors.white,
-              child: const Icon(Icons.qr_code_2, size: 180),
+      builder: (context) => FutureBuilder<Map<String, dynamic>?>(
+        future: context.read<OrderProvider>().getTicketDetails(order.id),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const AlertDialog(
+              backgroundColor: AppColors.background,
+              content: SizedBox(
+                height: 100,
+                child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+              ),
+            );
+          }
+
+          final data = snapshot.data;
+
+          return AlertDialog(
+            backgroundColor: AppColors.surface,
+            title: Text("VIRTUAL TICKET", style: GoogleFonts.orbitron(fontSize: 16, color: AppColors.secondary)),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(15),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.qr_code_2, size: 180, color: Colors.black),
+                  ),
+                  const SizedBox(height: 20),
+                  if (data != null) ...[
+                    Text(data['name_konser'] ?? 'CONCERT NAME', 
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16)),
+                    const SizedBox(height: 10),
+                    _ticketInfo("Buyer", data['nama_user'] ?? '-'),
+                    _ticketInfo("Location", data['lokasi'] ?? '-'),
+                    _ticketInfo("Date", data['tanggal'] ?? '-'),
+                    const Divider(color: Colors.white10, height: 20),
+                    Text("Rp ${data['total_harga']}", 
+                        style: const TextStyle(color: AppColors.approved, fontWeight: FontWeight.bold, fontSize: 18)),
+                  ] else ...[
+                    const Icon(Icons.error_outline, color: AppColors.rejected, size: 40),
+                    const SizedBox(height: 10),
+                    const Text("Failed to load ticket data.", style: TextStyle(color: Colors.white70)),
+                    const Text("(Server Error 501)", style: TextStyle(color: Colors.white38, fontSize: 10)),
+                  ],
+                  
+                  const SizedBox(height: 25),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: data == null ? null : () {
+                        context.read<OrderProvider>().downloadTicket(order.id);
+                      },
+                      icon: const Icon(Icons.download),
+                      label: const Text("DOWNLOAD PDF"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.secondary, 
+                        foregroundColor: Colors.black,
+                        disabledBackgroundColor: Colors.white10,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
-            Text(order.concert?.name ?? 'Concert Ticket', style: const TextStyle(fontWeight: FontWeight.bold)),
-            Text('Booking ID: ${order.id}'),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context), 
+                child: const Text('CLOSE', style: TextStyle(color: Colors.white54))
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _ticketInfo(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text("$label:", style: const TextStyle(color: Colors.white38, fontSize: 11)),
+          Text(value, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -161,12 +232,10 @@ class _StatusBadge extends StatelessWidget {
     Color color;
     switch (status.toLowerCase()) {
       case 'approved':
-      case 'paid': 
-        color = Colors.green; break;
+      case 'paid': color = AppColors.approved; break;
       case 'rejected':
-      case 'cancelled': 
-        color = Colors.red; break;
-      default: color = Colors.orange;
+      case 'cancelled': color = AppColors.rejected; break;
+      default: color = AppColors.pending;
     }
 
     return Container(
