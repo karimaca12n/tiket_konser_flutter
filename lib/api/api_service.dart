@@ -1,23 +1,23 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart'; // Untuk kIsWeb
+import 'package:flutter/foundation.dart';
 
 class ApiService {
-  // Fungsi untuk mendapatkan IP yang tepat berdasarkan platform
   static String get baseUrl {
     if (kIsWeb) {
       return 'http://localhost:8081/api/';
     } else {
-      // Jika di Android Emulator, gunakan 10.0.2.2
-      return 'http://10.0.2.2:8081/api/';
+      // Gunakan localhost (wajib jalankan adb reverse tcp:8081 tcp:8081 di terminal)
+      return 'http://localhost:8081/api/';
     }
   }
 
   final Dio _dio = Dio(BaseOptions(
     baseUrl: baseUrl,
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 10),
+    connectTimeout: const Duration(seconds: 15),
+    receiveTimeout: const Duration(seconds: 15),
     headers: {
       'Accept': 'application/json',
+      'Content-Type': 'application/json',
     },
   ));
 

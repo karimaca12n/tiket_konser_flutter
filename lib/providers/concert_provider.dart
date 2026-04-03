@@ -27,7 +27,7 @@ class ConcertProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _apiService.dio.get('/konser');
+      final response = await _apiService.dio.get('konser');
       if (response.statusCode == 200) {
         var data = response.data;
         if (data is Map && data.containsKey('data')) {
@@ -69,7 +69,7 @@ class ConcertProvider extends ChangeNotifier {
       }
 
       FormData formData = FormData.fromMap(formDataMap);
-      final response = await _apiService.dio.post('/konser', data: formData);
+      final response = await _apiService.dio.post('konser', data: formData);
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         await fetchConcerts();
@@ -108,7 +108,7 @@ class ConcertProvider extends ChangeNotifier {
       }
 
       FormData formData = FormData.fromMap(formDataMap);
-      final response = await _apiService.dio.post('/konser/$id', data: formData);
+      final response = await _apiService.dio.post('konser/$id', data: formData);
 
       if (response.statusCode == 200) {
         await fetchConcerts();
@@ -128,7 +128,7 @@ class ConcertProvider extends ChangeNotifier {
 
   Future<bool> deleteConcert(String id) async {
     try {
-      final response = await _apiService.dio.delete('/konser/$id');
+      final response = await _apiService.dio.delete('konser/$id');
       if (response.statusCode == 200) {
         _concerts.removeWhere((c) => c.id == id);
         notifyListeners();

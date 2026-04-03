@@ -42,7 +42,7 @@ class OrderProvider extends ChangeNotifier {
 
   // DOWNLOAD TIKET PDF (Dinamis untuk Web & Android)
   Future<void> downloadTicket(String orderId) async {
-    String host = kIsWeb ? 'localhost' : '10.0.2.2';
+    String host = 'localhost'; // Gunakan localhost untuk HP Fisik via ADB Reverse
     // URL ini akan memanggil rute: api/orders/download/ID
     final String url = 'http://$host:8081/api/orders/download/$orderId';
     final Uri uri = Uri.parse(url);

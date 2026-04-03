@@ -28,9 +28,18 @@ class ConcertModel {
     }
 
     String imageName = json['gambar'] ?? '';
-    String fullImageUrl = imageName;
-    if (imageName.isNotEmpty && !imageName.startsWith('http')) {
-      fullImageUrl = 'http://localhost:8081/image/$imageName';
+    String fullImageUrl = '';
+    
+    if (imageName.isNotEmpty) {
+      if (imageName.startsWith('http')) {
+        fullImageUrl = imageName;
+      } else {
+        // Gunakan localhost sesuai konfigurasi API Anda
+        fullImageUrl = 'http://localhost:8081/image/$imageName';
+      }
+    } else {
+      // URL placeholder jika gambar kosong agar tidak error
+      fullImageUrl = 'https://via.placeholder.com/150';
     }
 
     return ConcertModel(

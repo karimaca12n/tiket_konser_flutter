@@ -19,13 +19,18 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     String avatarName = json['avatar'] ?? '';
-    String fullAvatarUrl = avatarName;
+    String fullAvatarUrl = '';
     
-    // Gunakan host yang dinamis agar tampil di Web maupun Emulator
-    String host = kIsWeb ? 'localhost' : '10.0.2.2';
-    
-    if (avatarName.isNotEmpty && !avatarName.startsWith('http')) {
-      fullAvatarUrl = 'http://$host:8081/uploads/profile/$avatarName';
+    if (avatarName.isNotEmpty) {
+      if (avatarName.startsWith('http')) {
+        fullAvatarUrl = avatarName;
+      } else {
+        // Gunakan localhost untuk HP Fisik (setelah adb reverse)
+        fullAvatarUrl = 'http://localhost:8081/uploads/profile/$avatarName';
+      }
+    } else {
+      // Placeholder jika tidak ada avatar
+      fullAvatarUrl = 'https://ui-avatars.com/api/?name=${json['nama'] ?? 'User'}&background=random';
     }
 
     return UserModel(

@@ -103,7 +103,11 @@ class AuthProvider extends ChangeNotifier {
       }
     } catch (e) {
       if (e is DioException) {
+        debugPrint('Login Error Type: ${e.type}');
+        debugPrint('Login Error Message: ${e.message}');
         debugPrint('Login API error details: ${e.response?.data}');
+      } else {
+        debugPrint('Login Unknown Error: $e');
       }
     }
 
