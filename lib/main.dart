@@ -16,6 +16,8 @@ import 'package:tiket_konser/admin/admin_users.dart';
 import 'package:tiket_konser/providers/auth_provider.dart';
 import 'package:tiket_konser/providers/concert_provider.dart';
 import 'package:tiket_konser/providers/order_provider.dart';
+import 'package:tiket_konser/pages/payment_page.dart';
+import 'package:tiket_konser/models/concert_model.dart';
 import 'package:tiket_konser/widgets/main_scaffold.dart';
 
 void main() {
@@ -47,6 +49,10 @@ final GoRouter _router = GoRouter(
         GoRoute(
           path: '/concert/:id',
           builder: (context, state) => ConcertDetailPage(id: state.pathParameters['id']!),
+        ),
+        GoRoute(
+          path: '/payment',
+          builder: (context, state) => PaymentPage(concert: state.extra as ConcertModel),
         ),
       ],
     ),
@@ -83,43 +89,47 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        brightness: Brightness.dark,
+        brightness: Brightness.light,
         scaffoldBackgroundColor: AppColors.background,
-        colorScheme: ColorScheme.dark(
+        colorScheme: const ColorScheme.light(
           primary: AppColors.primary,
           secondary: AppColors.secondary,
           surface: AppColors.surface,
-          background: AppColors.background,
         ),
-        textTheme: GoogleFonts.orbitronTextTheme(ThemeData.dark().textTheme).copyWith(
-          bodyMedium: GoogleFonts.orbitron(color: Colors.white, fontSize: 14),
-          titleLarge: GoogleFonts.orbitron(color: AppColors.secondary, fontWeight: FontWeight.bold, fontSize: 20),
-          headlineMedium: GoogleFonts.orbitron(color: AppColors.primary, fontWeight: FontWeight.bold),
+        textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme).copyWith(
+          bodyMedium: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 14),
+          titleLarge: GoogleFonts.pressStart2p(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
+          headlineMedium: GoogleFonts.pressStart2p(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 24),
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: AppColors.surface,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: AppColors.secondary.withOpacity(0.5)),
+            borderSide: const BorderSide(color: AppColors.border, width: 2),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: AppColors.secondary.withOpacity(0.3)),
+            borderSide: const BorderSide(color: AppColors.border, width: 2),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.primary, width: 2),
+            borderSide: const BorderSide(color: AppColors.primary, width: 2.5),
           ),
+          hintStyle: GoogleFonts.inter(color: AppColors.textSecondary),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            elevation: 8,
-            shadowColor: AppColors.primary.withOpacity(0.5),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            backgroundColor: AppColors.secondary,
+            foregroundColor: AppColors.textPrimary,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: AppColors.border, width: 2),
+            ),
             padding: const EdgeInsets.symmetric(vertical: 16),
+            textStyle: GoogleFonts.pressStart2p(fontSize: 12, fontWeight: FontWeight.bold),
           ),
         ),
       ),

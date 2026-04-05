@@ -107,8 +107,9 @@ class OrderProvider extends ChangeNotifier {
 
   Future<bool> updateOrderStatus(String id, String status) async {
     try {
+      final String statusValue = status.toLowerCase();
       final response = await _apiService.dio.patch('orders/$id', data: {
-        'status': status,
+        'status': statusValue,
       });
       if (response.statusCode == 200) {
         await fetchAllOrders();

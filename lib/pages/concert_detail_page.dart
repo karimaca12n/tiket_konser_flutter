@@ -42,7 +42,6 @@ class _ConcertDetailPageState extends State<ConcertDetailPage> {
     
     if (concerts.isEmpty) {
       return const Scaffold(
-        appBar: Navbar(),
         body: Center(child: Text('Concert not found or loading...')),
       );
     }
@@ -58,14 +57,18 @@ class _ConcertDetailPageState extends State<ConcertDetailPage> {
     final bool isExpired = concert.date.isBefore(today);
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: CircleAvatar(
-          backgroundColor: Colors.black45,
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => context.pop(),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: CircleAvatar(
+            backgroundColor: Colors.white,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              onPressed: () => context.pop(),
+            ),
           ),
         ),
       ),
@@ -78,11 +81,16 @@ class _ConcertDetailPageState extends State<ConcertDetailPage> {
               children: [
                 Hero(
                   tag: 'concert-${concert.id}',
-                  child: Image.network(
-                    concert.image,
-                    height: 350,
+                  child: Container(
+                    height: 400,
                     width: double.infinity,
-                    fit: BoxFit.cover,
+                    decoration: BoxDecoration(
+                      border: const Border(bottom: BorderSide(color: AppColors.border, width: 3)),
+                      image: DecorationImage(
+                        image: NetworkImage(concert.image),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
                 ),
                 Positioned.fill(
@@ -93,8 +101,8 @@ class _ConcertDetailPageState extends State<ConcertDetailPage> {
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          AppColors.background.withOpacity(0.8),
-                          AppColors.background,
+                          AppColors.background.withValues(alpha: 0.1),
+                          AppColors.background.withValues(alpha: 0.9),
                         ],
                       ),
                     ),
@@ -110,24 +118,27 @@ class _ConcertDetailPageState extends State<ConcertDetailPage> {
                 children: [
                   Text(
                     concert.name.toUpperCase(),
-                    style: GoogleFonts.orbitron(
-                      fontSize: 24,
+                    style: GoogleFonts.pressStart2p(
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.secondary,
+                      color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
-                      const Icon(Icons.location_on, color: AppColors.primary, size: 18),
-                      const SizedBox(width: 5),
-                      Text(concert.location, style: const TextStyle(color: Colors.white70)),
+                      const Icon(Icons.location_on, color: AppColors.primary, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        concert.location.toUpperCase(), 
+                        style: GoogleFonts.pressStart2p(fontSize: 10, color: AppColors.textSecondary)
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                   Container(
-                    padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                    decoration: AppTheme.neonCard,
+                    padding: const EdgeInsets.all(16),
+                    decoration: AppTheme.retroCard,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
@@ -135,23 +146,23 @@ class _ConcertDetailPageState extends State<ConcertDetailPage> {
                         _buildInfoItem(Icons.access_time, '19:00'),
                         _buildInfoItem(
                           Icons.confirmation_num, 
-                          isExpired ? 'EXPIRED' : 'AVAILABLE',
-                          color: isExpired ? AppColors.rejected : AppColors.secondary,
+                          isExpired ? 'EXPIRED' : 'ACTIVE',
+                          color: isExpired ? AppColors.rejected : AppColors.approved,
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 32),
                   Text(
                     "DESCRIPTION",
-                    style: GoogleFonts.orbitron(fontSize: 14, color: AppColors.primary, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.pressStart2p(fontSize: 12, color: AppColors.primary),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 16),
                   Text(
                     concert.description ?? "Experience an unforgettable night of music and lights. Don't miss this retro modern concert experience.",
-                    style: const TextStyle(color: Colors.white70, height: 1.6),
+                    style: GoogleFonts.inter(color: AppColors.textPrimary, height: 1.6, fontSize: 14),
                   ),
-                  const SizedBox(height: 120),
+                  const SizedBox(height: 140),
                 ],
               ),
             ),
@@ -159,10 +170,13 @@ class _ConcertDetailPageState extends State<ConcertDetailPage> {
         ),
       ),
       bottomSheet: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          border: Border(top: BorderSide(color: AppColors.secondary.withOpacity(0.3))),
+          color: Colors.white,
+          border: const Border(top: BorderSide(color: AppColors.border, width: 3)),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, -5))
+          ]
         ),
         child: Row(
           children: [
@@ -170,36 +184,34 @@ class _ConcertDetailPageState extends State<ConcertDetailPage> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text("PRICE", style: TextStyle(color: Colors.white54, fontSize: 10)),
+                Text("PRICE", style: GoogleFonts.pressStart2p(color: AppColors.textSecondary, fontSize: 8)),
+                const SizedBox(height: 4),
                 Text(
                   NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0).format(concert.price),
-                  style: const TextStyle(color: AppColors.approved, fontWeight: FontWeight.bold, fontSize: 18),
+                  style: GoogleFonts.inter(color: AppColors.textPrimary, fontWeight: FontWeight.w900, fontSize: 20),
                 ),
               ],
             ),
-            const SizedBox(width: 20),
+            const SizedBox(width: 24),
             Expanded(
-              child: ElevatedButton(
-                onPressed: isExpired ? null : () async {
-                  if (!authProvider.isAuthenticated) {
-                    context.push('/login');
-                    return;
-                  }
-                  final success = await orderProvider.createOrder(concert, authProvider.user!.id);
-                  if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('BOOKING SUCCESSFUL!')),
-                    );
-                    context.go('/orders');
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isExpired ? Colors.grey.withOpacity(0.3) : AppColors.secondary,
-                  foregroundColor: isExpired ? Colors.white38 : Colors.black,
-                ),
-                child: Text(
-                  isExpired ? "EXPIRED" : "BOOK NOW", 
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+              child: SizedBox(
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: isExpired ? null : () async {
+                    if (!authProvider.isAuthenticated) {
+                      context.push('/login');
+                      return;
+                    }
+                    context.push('/payment', extra: concert);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isExpired ? Colors.grey[400] : AppColors.secondary,
+                    foregroundColor: AppColors.textPrimary,
+                  ),
+                  child: Text(
+                    isExpired ? "EXPIRED" : "BOOK NOW", 
+                    style: GoogleFonts.pressStart2p(fontSize: 10),
+                  ),
                 ),
               ),
             ),
@@ -213,37 +225,21 @@ class _ConcertDetailPageState extends State<ConcertDetailPage> {
     return Expanded(
       child: Column(
         children: [
-          Icon(icon, color: color ?? AppColors.secondary, size: 20),
-          const SizedBox(height: 5),
+          Icon(icon, color: color ?? AppColors.primary, size: 24),
+          const SizedBox(height: 8),
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
-              text, 
+              text.toUpperCase(), 
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 11, 
-                fontWeight: FontWeight.bold,
-                color: color ?? Colors.white,
+              style: GoogleFonts.pressStart2p(
+                fontSize: 8, 
+                color: color ?? AppColors.textPrimary,
               ),
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class Navbar extends StatelessWidget implements PreferredSizeWidget {
-  const Navbar({super.key});
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
     );
   }
 }

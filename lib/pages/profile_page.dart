@@ -31,15 +31,22 @@ class _ProfilePageState extends State<ProfilePage> {
     final user = authProvider.user;
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('MY PROFILE', style: GoogleFonts.orbitron(fontSize: 18, fontWeight: FontWeight.bold)),
+        title: Text('MY PROFILE', 
+          style: GoogleFonts.pressStart2p(
+            fontSize: 16, 
+            fontWeight: FontWeight.bold, 
+            color: AppColors.textPrimary
+          )
+        ),
         backgroundColor: AppColors.background,
         elevation: 0,
-        centerTitle: true,
+        centerTitle: false,
         actions: [
           if (!_isEditing)
             IconButton(
-              icon: const Icon(Icons.edit, color: AppColors.secondary),
+              icon: const Icon(Icons.edit, color: AppColors.textPrimary),
               onPressed: () => setState(() => _isEditing = true),
             )
           else
@@ -64,30 +71,35 @@ class _ProfilePageState extends State<ProfilePage> {
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.secondary, width: 2),
-                      boxShadow: [
-                        BoxShadow(color: AppColors.secondary.withOpacity(0.3), blurRadius: 15),
+                      color: Colors.white,
+                      border: Border.all(color: AppColors.border, width: 3),
+                      boxShadow: const [
+                        BoxShadow(color: AppColors.border, offset: Offset(4, 4)),
                       ],
                     ),
                     child: CircleAvatar(
                       radius: 60,
-                      backgroundColor: AppColors.surface,
+                      backgroundColor: Colors.grey[200],
                       backgroundImage: _selectedImage != null 
                         ? MemoryImage(_selectedImage!.bytes!) 
                         : (user?.avatar != null ? NetworkImage(user!.avatar!) as ImageProvider : null),
                       child: (user?.avatar == null && _selectedImage == null) 
-                        ? const Icon(Icons.person, size: 60, color: AppColors.primary) 
+                        ? const Icon(Icons.person, size: 60, color: AppColors.textPrimary) 
                         : null,
                     ),
                   ),
                   if (_isEditing)
                     Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: CircleAvatar(
-                        backgroundColor: AppColors.secondary,
-                        radius: 18,
-                        child: Icon(Icons.camera_alt, size: 18, color: AppColors.background),
+                      bottom: 4,
+                      right: 4,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondary,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppColors.border, width: 2),
+                        ),
+                        child: const Icon(Icons.camera_alt, size: 18, color: AppColors.textPrimary),
                       ),
                     ),
                 ],
@@ -100,16 +112,17 @@ class _ProfilePageState extends State<ProfilePage> {
             if (_isEditing)
               TextField(
                 controller: _nameController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
+                style: GoogleFonts.inter(color: AppColors.textPrimary),
+                decoration: InputDecoration(
                   labelText: 'FULL NAME',
-                  prefixIcon: Icon(Icons.person_outline, color: AppColors.secondary),
+                  labelStyle: GoogleFonts.pressStart2p(fontSize: 10, color: AppColors.textSecondary),
+                  prefixIcon: const Icon(Icons.person_outline, color: AppColors.textPrimary),
                 ),
               )
             else
               _buildProfileInfo('NAME', user?.name ?? 'Guest'),
             
-            const SizedBox(height: 15),
+            const SizedBox(height: 20),
             
             // Email (Non-Editable)
             _buildProfileInfo('EMAIL', user?.email ?? 'Not logged in'),
@@ -121,10 +134,16 @@ class _ProfilePageState extends State<ProfilePage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: authProvider.isLoading ? null : _handleUpdate,
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.approved, foregroundColor: Colors.black),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.approved, 
+                    foregroundColor: Colors.white,
+                  ),
                   child: authProvider.isLoading 
-                    ? const CircularProgressIndicator() 
-                    : const Text('SAVE CHANGES', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ? const SizedBox(
+                        height: 20, width: 20, 
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                      ) 
+                    : const Text('SAVE CHANGES'),
                 ),
               )
             else ...[
@@ -135,13 +154,14 @@ class _ProfilePageState extends State<ProfilePage> {
                   icon: const Icon(Icons.confirmation_num_outlined),
                   label: const Text('MY TICKETS'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.surface,
-                    foregroundColor: AppColors.secondary,
-                    side: BorderSide(color: AppColors.secondary.withOpacity(0.5)),
+                    backgroundColor: AppColors.secondary,
+                    foregroundColor: AppColors.textPrimary,
                   ),
                 ),
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 16),
+              _buildAboutSection(),
+              const SizedBox(height: 40),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -152,15 +172,55 @@ class _ProfilePageState extends State<ProfilePage> {
                   icon: const Icon(Icons.logout),
                   label: const Text('LOGOUT'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.rejected.withOpacity(0.1),
-                    foregroundColor: AppColors.rejected,
-                    side: const BorderSide(color: AppColors.rejected),
+                    backgroundColor: AppColors.rejected,
+                    foregroundColor: Colors.white,
                   ),
                 ),
               ),
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildAboutSection() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border, width: 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.info_outline, color: AppColors.primary, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'ABOUT SORAIFEST',
+                style: GoogleFonts.pressStart2p(fontSize: 8, color: AppColors.primary),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Support, Feedback, or Bug Reports:',
+            style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 8),
+          SelectableText(
+            'SoraiFest@gmail.com',
+            style: GoogleFonts.pressStart2p(
+              fontSize: 10, 
+              color: AppColors.textPrimary,
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -180,23 +240,28 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (success) {
       setState(() => _isEditing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(backgroundColor: AppColors.approved, content: Text('PROFILE UPDATED!')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: AppColors.approved, 
+            content: Text('PROFILE UPDATED!', style: GoogleFonts.pressStart2p(fontSize: 10, color: Colors.white)),
+          ),
+        );
+      }
     }
   }
 
   Widget _buildProfileInfo(String label, String value) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(15),
-      decoration: AppTheme.neonCard,
+      padding: const EdgeInsets.all(20),
+      decoration: AppTheme.retroCard,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 5),
-          Text(value, style: GoogleFonts.orbitron(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+          Text(label, style: GoogleFonts.pressStart2p(color: AppColors.textSecondary, fontSize: 8)),
+          const SizedBox(height: 12),
+          Text(value, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
         ],
       ),
     );

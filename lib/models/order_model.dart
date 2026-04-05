@@ -34,14 +34,14 @@ class OrderModel {
       jumlahTiket: int.tryParse(json['jumlah_tiket']?.toString() ?? '1') ?? 1,
       totalHarga: double.tryParse(json['total_harga']?.toString() ?? '0') ?? 0,
       createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : DateTime.now(),
-      concert: json['name_konser'] != null ? ConcertModel(
-        id: json['konser_id']?.toString() ?? '',
-        name: json['name_konser'] ?? '',
-        location: json['lokasi'] ?? '',
-        date: json['tanggal'] != null ? DateTime.parse(json['tanggal']) : DateTime.now(),
-        image: json['gambar'] ?? '',
-        price: double.tryParse(json['total_harga']?.toString() ?? '0') ?? 0,
-      ) : null,
+      concert: json['name_konser'] != null ? ConcertModel.fromJson({
+        'id': json['konser_id'],
+        'name_konser': json['name_konser'],
+        'lokasi': json['lokasi'],
+        'tanggal': json['tanggal'],
+        'gambar': json['gambar'],
+        'harga': json['total_harga'],
+      }) : null,
       user: json['nama_user'] != null ? UserModel(
         id: json['user_id']?.toString() ?? '',
         name: json['nama_user'] ?? '',

@@ -22,17 +22,17 @@ class AdminLayout extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.background,
         elevation: 0,
-        centerTitle: true,
+        centerTitle: false,
         title: Text(
           title.toUpperCase(),
-          style: GoogleFonts.orbitron(
-            fontSize: 16,
+          style: GoogleFonts.pressStart2p(
+            fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: AppColors.secondary,
-            letterSpacing: 1.5,
+            color: AppColors.textPrimary,
           ),
         ),
         actions: [
@@ -42,8 +42,8 @@ class AdminLayout extends StatelessWidget {
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.secondary.withOpacity(0.2), height: 1),
+          preferredSize: const Size.fromHeight(2),
+          child: Container(color: AppColors.border, height: 2),
         ),
       ),
       drawer: Drawer(
@@ -52,26 +52,36 @@ class AdminLayout extends StatelessWidget {
           children: [
             DrawerHeader(
               decoration: const BoxDecoration(
-                gradient: AppColors.retroGradient,
+                color: AppColors.secondary,
+                border: Border(bottom: BorderSide(color: AppColors.border, width: 3)),
               ),
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.admin_panel_settings, size: 50, color: Colors.white),
-                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.border, width: 2),
+                      ),
+                      child: const Icon(Icons.admin_panel_settings, size: 40, color: AppColors.textPrimary),
+                    ),
+                    const SizedBox(height: 12),
                     Text(
                       'CORE SYSTEM',
-                      style: GoogleFonts.orbitron(
-                        color: Colors.white,
+                      style: GoogleFonts.pressStart2p(
+                        color: AppColors.textPrimary,
                         fontWeight: FontWeight.bold,
-                        fontSize: 18,
+                        fontSize: 12,
                       ),
                     ),
                   ],
                 ),
               ),
             ),
+            const SizedBox(height: 10),
             _DrawerItem(
               icon: Icons.dashboard_outlined,
               label: 'DASHBOARD',
@@ -97,7 +107,7 @@ class AdminLayout extends StatelessWidget {
               onTap: () => context.go('/admin/users'),
             ),
             const Spacer(),
-            const Divider(color: Colors.white10),
+            const Divider(color: AppColors.border, thickness: 1.5),
             _DrawerItem(
               icon: Icons.logout,
               label: 'LOGOUT',
@@ -111,9 +121,7 @@ class AdminLayout extends StatelessWidget {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          color: AppColors.background,
-        ),
+        color: AppColors.background,
         child: SafeArea(child: child),
       ),
     );
@@ -135,25 +143,29 @@ class _DrawerItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(
-        icon, 
-        color: isActive ? AppColors.secondary : Colors.white54,
-      ),
-      title: Text(
-        label,
-        style: GoogleFonts.orbitron(
-          fontSize: 13,
-          color: isActive ? Colors.white : Colors.white54,
-          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: isActive ? AppTheme.retroCard : null,
+      child: ListTile(
+        leading: Icon(
+          icon, 
+          color: AppColors.textPrimary,
         ),
+        title: Text(
+          label,
+          style: GoogleFonts.pressStart2p(
+            fontSize: 10,
+            color: AppColors.textPrimary,
+            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        selected: isActive,
+        tileColor: isActive ? AppColors.secondary : null,
+        onTap: () {
+          Navigator.pop(context);
+          onTap();
+        },
       ),
-      selected: isActive,
-      selectedTileColor: AppColors.secondary.withOpacity(0.1),
-      onTap: () {
-        Navigator.pop(context);
-        onTap();
-      },
     );
   }
 }

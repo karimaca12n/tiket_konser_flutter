@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tiket_konser/providers/auth_provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tiket_konser/core/constants.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -20,98 +22,140 @@ class _RegisterPageState extends State<RegisterPage> {
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => context.go('/home'),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          onPressed: () => context.go('/login'),
         ),
       ),
-      extendBodyBehindAppBar: true,
       body: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 400),
-          padding: const EdgeInsets.all(32),
-          child: Card(
-            elevation: 8,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Create Account',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor,
-                    ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(30),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    border: Border.all(color: AppColors.border, width: 2),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: const [
+                      BoxShadow(color: AppColors.border, offset: Offset(6, 6)),
+                    ],
                   ),
-                  const SizedBox(height: 32),
-                  TextField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Full Name',
-                      prefixIcon: Icon(Icons.person_outline),
-                      border: OutlineInputBorder(),
-                    ),
+                  child: const Icon(Icons.person_add, size: 60, color: Colors.white),
+                ),
+                const SizedBox(height: 30),
+                Text(
+                  'JOIN THE FEST',
+                  style: GoogleFonts.pressStart2p(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textPrimary,
                   ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _emailController,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(),
-                    ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Create your account to start booking',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
                   ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Password',
-                      prefixIcon: Icon(Icons.lock_outline),
-                      border: OutlineInputBorder(),
-                    ),
+                ),
+                const SizedBox(height: 40),
+                
+                TextField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'FULL NAME',
+                    prefixIcon: Icon(Icons.person_outline),
                   ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: authProvider.isLoading
-                          ? null
-                          : () async {
-                              final success = await authProvider.register(
-                                _nameController.text,
-                                _emailController.text,
-                                _passwordController.text,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(
+                    labelText: 'EMAIL ADDRESS',
+                    prefixIcon: Icon(Icons.email_outlined),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'PASSWORD',
+                    prefixIcon: Icon(Icons.lock_outline),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                
+                SizedBox(
+                  width: double.infinity,
+                  child: authProvider.isLoading
+                      ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                      : ElevatedButton(
+                          onPressed: () async {
+                            final messenger = ScaffoldMessenger.of(context);
+                            final router = GoRouter.of(context);
+                            
+                            final success = await authProvider.register(
+                              _nameController.text,
+                              _emailController.text,
+                              _passwordController.text,
+                            );
+                            
+                            if (success) {
+                              messenger.showSnackBar(
+                                const SnackBar(
+                                  backgroundColor: AppColors.approved,
+                                  content: Text('REGISTRATION SUCCESS: Welcome to the Fest!'),
+                                ),
                               );
-                              if (success) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Registration successful! Please login.')),
-                                );
-                                context.go('/login');
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Registration failed.')),
-                                );
-                              }
-                            },
-                      child: authProvider.isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text('Register'),
+                              router.go('/login');
+                            } else {
+                              messenger.showSnackBar(
+                                const SnackBar(
+                                  backgroundColor: AppColors.rejected,
+                                  content: Text('REGISTRATION FAILED: Please Try Again'),
+                                ),
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.accent,
+                          ),
+                          child: const Text('CREATE ACCOUNT'),
+                        ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Already have an account? ",
+                      style: GoogleFonts.inter(color: AppColors.textSecondary),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () => context.go('/login'),
-                    child: const Text('Already have an account? Login'),
-                  ),
-                ],
-              ),
+                    GestureDetector(
+                      onTap: () => context.go('/login'),
+                      child: Text(
+                        'SIGN IN',
+                        style: GoogleFonts.inter(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),

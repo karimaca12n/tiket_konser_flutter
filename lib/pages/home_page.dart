@@ -23,36 +23,41 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
             // Retro Header
             SliverAppBar(
-              expandedHeight: 120,
+              expandedHeight: 100,
               floating: true,
               backgroundColor: AppColors.background,
+              elevation: 0,
               flexibleSpace: FlexibleSpaceBar(
                 centerTitle: false,
-                titlePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                titlePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                 title: Text(
                   'SORAIFEST',
-                  style: GoogleFonts.orbitron(
+                  style: GoogleFonts.pressStart2p(
                     fontWeight: FontWeight.w900,
-                    color: AppColors.secondary,
-                    letterSpacing: 2,
-                    fontSize: 20,
-                    shadows: [
-                      const Shadow(color: AppColors.secondary, blurRadius: 10),
-                    ],
+                    color: AppColors.textPrimary,
+                    fontSize: 18,
                   ),
                 ),
               ),
               actions: [
-                IconButton(
-                  icon: const Icon(Icons.notifications_none, color: AppColors.secondary),
-                  onPressed: () {},
+                Container(
+                  margin: const EdgeInsets.only(right: 20, top: 10, bottom: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    border: Border.all(color: AppColors.border, width: 2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.notifications_none, color: AppColors.textPrimary, size: 20),
+                    onPressed: () {},
+                  ),
                 ),
-                const SizedBox(width: 10),
               ],
             ),
 
@@ -65,8 +70,8 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     Text(
                       "FIND YOUR VIBE",
-                      style: GoogleFonts.orbitron(
-                        fontSize: 12,
+                      style: GoogleFonts.pressStart2p(
+                        fontSize: 10,
                         color: AppColors.primary,
                         fontWeight: FontWeight.bold,
                       ),
@@ -74,10 +79,11 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: 15),
                     TextField(
                       onChanged: (value) => context.read<ConcertProvider>().setSearchQuery(value),
+                      style: GoogleFonts.inter(),
                       decoration: InputDecoration(
                         hintText: 'Search concerts...',
-                        prefixIcon: const Icon(Icons.search, color: AppColors.secondary),
-                        contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                        prefixIcon: const Icon(Icons.search, color: AppColors.textPrimary),
+                        hintStyle: GoogleFonts.inter(color: AppColors.textSecondary),
                       ),
                     ),
                   ],
@@ -95,8 +101,13 @@ class _HomePageState extends State<HomePage> {
                 }
 
                 if (provider.concerts.isEmpty) {
-                  return const SliverFillRemaining(
-                    child: Center(child: Text('NO EVENTS FOUND')),
+                  return SliverFillRemaining(
+                    child: Center(
+                      child: Text(
+                        'NO EVENTS FOUND',
+                        style: GoogleFonts.pressStart2p(fontSize: 10, color: AppColors.textSecondary),
+                      ),
+                    ),
                   );
                 }
 
@@ -129,94 +140,125 @@ class _ConcertCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      decoration: AppTheme.neonCard,
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: AppTheme.retroCard,
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => context.push('/concert/${concert.id}'),
-        borderRadius: BorderRadius.circular(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Stack(
               children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                  child: Image.network(
-                    concert.image,
-                    height: 180,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      height: 180,
-                      color: Colors.white10,
-                      child: const Icon(Icons.broken_image, color: Colors.white24),
-                    ),
+                Image.network(
+                  concert.image,
+                  height: 200,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    height: 200,
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.broken_image, color: Colors.grey),
                   ),
                 ),
                 Positioned(
                   top: 12,
                   right: 12,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.black87,
+                      color: AppColors.secondary,
+                      border: Border.all(color: AppColors.border, width: 2),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.primary, width: 1),
                     ),
                     child: Text(
                       DateFormat('dd MMM').format(concert.date),
-                      style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12),
+                      style: GoogleFonts.pressStart2p(
+                        color: AppColors.textPrimary, 
+                        fontWeight: FontWeight.bold, 
+                        fontSize: 8
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.all(15),
+            Container(
+              decoration: const BoxDecoration(
+                border: Border(top: BorderSide(color: AppColors.border, width: 2)),
+              ),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     concert.name.toUpperCase(),
-                    style: GoogleFonts.orbitron(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                    maxLines: 1,
+                    style: GoogleFonts.pressStart2p(
+                      fontSize: 12, 
+                      fontWeight: FontWeight.bold, 
+                      color: AppColors.textPrimary
+                    ),
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
-                      const Icon(Icons.location_on, size: 14, color: AppColors.secondary),
-                      const SizedBox(width: 5),
+                      const Icon(Icons.location_on, size: 16, color: AppColors.primary),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           concert.location,
-                          style: const TextStyle(color: Colors.white70, fontSize: 12),
+                          style: GoogleFonts.inter(
+                            color: AppColors.textSecondary, 
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0).format(concert.price),
-                        style: const TextStyle(color: AppColors.approved, fontWeight: FontWeight.bold, fontSize: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "START FROM",
+                            style: GoogleFonts.pressStart2p(fontSize: 7, color: AppColors.textSecondary),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0).format(concert.price),
+                            style: GoogleFonts.inter(
+                              color: AppColors.textPrimary, 
+                              fontWeight: FontWeight.w900, 
+                              fontSize: 18
+                            ),
+                          ),
+                        ],
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         decoration: BoxDecoration(
-                          gradient: AppColors.retroGradient,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(color: AppColors.primary.withOpacity(0.5), blurRadius: 8),
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.border, width: 2),
+                          boxShadow: const [
+                            BoxShadow(color: AppColors.border, offset: Offset(3, 3)),
                           ],
                         ),
-                        child: const Text(
+                        child: Text(
                           'GET TICKET',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10),
+                          style: GoogleFonts.pressStart2p(
+                            color: Colors.white, 
+                            fontWeight: FontWeight.bold, 
+                            fontSize: 8
+                          ),
                         ),
                       ),
                     ],

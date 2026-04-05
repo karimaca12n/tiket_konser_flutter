@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:tiket_konser/providers/order_provider.dart';
 import 'package:tiket_konser/providers/auth_provider.dart';
 import 'package:tiket_konser/core/constants.dart';
-import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class UserOrdersPage extends StatefulWidget {
@@ -28,10 +27,18 @@ class _UserOrdersPageState extends State<UserOrdersPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('MY TICKETS', style: GoogleFonts.orbitron(fontSize: 18, fontWeight: FontWeight.bold)),
+        title: Text('MY TICKETS', 
+          style: GoogleFonts.pressStart2p(
+            fontSize: 16, 
+            fontWeight: FontWeight.bold, 
+            color: AppColors.textPrimary
+          )
+        ),
         backgroundColor: AppColors.background,
         elevation: 0,
+        centerTitle: false,
       ),
       body: Column(
         children: [
@@ -39,9 +46,11 @@ class _UserOrdersPageState extends State<UserOrdersPage> {
             padding: const EdgeInsets.all(20.0),
             child: TextField(
               onChanged: (value) => context.read<OrderProvider>().setSearchQuery(value),
-              decoration: const InputDecoration(
+              style: GoogleFonts.inter(),
+              decoration: InputDecoration(
                 hintText: 'Search tickets...',
-                prefixIcon: Icon(Icons.search, color: AppColors.secondary),
+                prefixIcon: const Icon(Icons.search, color: AppColors.textPrimary),
+                hintStyle: GoogleFonts.inter(color: AppColors.textSecondary),
               ),
             ),
           ),
@@ -49,7 +58,21 @@ class _UserOrdersPageState extends State<UserOrdersPage> {
             child: Consumer<OrderProvider>(
               builder: (context, provider, child) {
                 if (provider.isLoading) return const Center(child: CircularProgressIndicator(color: AppColors.primary));
-                if (provider.orders.isEmpty) return const Center(child: Text('NO TICKETS FOUND'));
+                if (provider.orders.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.confirmation_number_outlined, size: 64, color: Colors.grey),
+                        const SizedBox(height: 16),
+                        Text(
+                          'NO TICKETS FOUND',
+                          style: GoogleFonts.pressStart2p(fontSize: 10, color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  );
+                }
 
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -75,53 +98,76 @@ class _OrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isPaid = order.status.toLowerCase() == 'approved' || order.status.toLowerCase() == 'paid';
+    final bool isRejected = order.status.toLowerCase() == 'rejected' || order.status.toLowerCase() == 'cancelled';
     
     return Container(
-      margin: const EdgeInsets.only(bottom: 15),
-      padding: const EdgeInsets.all(15),
-      decoration: AppTheme.neonCard,
-      child: Row(
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              image: order.concert?.image != null && order.concert!.image.isNotEmpty
-                ? DecorationImage(
-                    image: NetworkImage(order.concert!.image),
-                    fit: BoxFit.cover,
-                  )
-                : null,
-            ),
-            child: order.concert?.image == null || order.concert!.image.isEmpty 
-                ? const Icon(Icons.music_note, color: Colors.white24) 
-                : null,
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  order.concert?.name.toUpperCase() ?? 'CONCERT',
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: AppTheme.retroCard,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: isPaid ? () => _showTicket(context, order) : null,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.border, width: 1.5),
+                  image: order.concert?.image != null && order.concert!.image.isNotEmpty
+                    ? DecorationImage(
+                        image: NetworkImage(order.concert!.image),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
                 ),
-                const SizedBox(height: 5),
-                _StatusBadge(status: order.status),
-              ],
-            ),
+                child: order.concert?.image == null || order.concert!.image.isEmpty 
+                    ? const Icon(Icons.music_note, color: Colors.grey) 
+                    : null,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      order.concert?.name.toUpperCase() ?? 'CONCERT',
+                      style: GoogleFonts.pressStart2p(
+                        fontWeight: FontWeight.bold, 
+                        color: AppColors.textPrimary, 
+                        fontSize: 10
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    _StatusBadge(status: order.status),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isPaid 
+                      ? AppColors.approved 
+                      : (isRejected ? AppColors.rejected : Colors.grey[200]),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.border, width: 2),
+                ),
+                child: Icon(
+                  isPaid 
+                      ? Icons.qr_code_scanner 
+                      : (isRejected ? Icons.close : Icons.hourglass_empty),
+                  color: (isPaid || isRejected) ? Colors.white : AppColors.textSecondary,
+                  size: 20,
+                ),
+              ),
+            ],
           ),
-          IconButton(
-            icon: Icon(
-              isPaid ? Icons.qr_code_scanner : Icons.hourglass_empty,
-              color: isPaid ? AppColors.approved : AppColors.pending,
-            ),
-            onPressed: isPaid ? () => _showTicket(context, order) : null,
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -133,76 +179,97 @@ class _OrderCard extends StatelessWidget {
         future: context.read<OrderProvider>().getTicketDetails(order.id),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const AlertDialog(
-              backgroundColor: AppColors.background,
-              content: SizedBox(
-                height: 100,
-                child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+            return Center(
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: AppTheme.retroCard,
+                child: const CircularProgressIndicator(color: AppColors.primary),
               ),
             );
           }
 
           final data = snapshot.data;
 
-          return AlertDialog(
-            backgroundColor: AppColors.surface,
-            title: Text("VIRTUAL TICKET", style: GoogleFonts.orbitron(fontSize: 16, color: AppColors.secondary)),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(15),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: AppTheme.retroCard,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "VIRTUAL TICKET", 
+                      style: GoogleFonts.pressStart2p(fontSize: 14, color: AppColors.textPrimary)
                     ),
-                    child: const Icon(Icons.qr_code_2, size: 180, color: Colors.black),
-                  ),
-                  const SizedBox(height: 20),
-                  if (data != null) ...[
-                    Text(data['name_konser'] ?? 'CONCERT NAME', 
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.border, width: 2),
+                      ),
+                      child: const Icon(Icons.qr_code_2, size: 180, color: Colors.black),
+                    ),
+                    const SizedBox(height: 24),
+                    if (data != null) ...[
+                      Text(
+                        (data['name_konser'] ?? 'CONCERT NAME').toString().toUpperCase(), 
                         textAlign: TextAlign.center,
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16)),
-                    const SizedBox(height: 10),
-                    _ticketInfo("Buyer", data['nama_user'] ?? '-'),
-                    _ticketInfo("Location", data['lokasi'] ?? '-'),
-                    _ticketInfo("Date", data['tanggal'] ?? '-'),
-                    const Divider(color: Colors.white10, height: 20),
-                    Text("Rp ${data['total_harga']}", 
-                        style: const TextStyle(color: AppColors.approved, fontWeight: FontWeight.bold, fontSize: 18)),
-                  ] else ...[
-                    const Icon(Icons.error_outline, color: AppColors.rejected, size: 40),
-                    const SizedBox(height: 10),
-                    const Text("Failed to load ticket data.", style: TextStyle(color: Colors.white70)),
-                    const Text("(Server Error 501)", style: TextStyle(color: Colors.white38, fontSize: 10)),
-                  ],
-                  
-                  const SizedBox(height: 25),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: data == null ? null : () {
-                        context.read<OrderProvider>().downloadTicket(order.id);
-                      },
-                      icon: const Icon(Icons.download),
-                      label: const Text("DOWNLOAD PDF"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.secondary, 
-                        foregroundColor: Colors.black,
-                        disabledBackgroundColor: Colors.white10,
+                        style: GoogleFonts.pressStart2p(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 12)
+                      ),
+                      const SizedBox(height: 20),
+                      _ticketInfo("BUYER", data['nama_user'] ?? '-'),
+                      _ticketInfo("LOCATION", data['lokasi'] ?? '-'),
+                      _ticketInfo("DATE", data['tanggal'] ?? '-'),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: Divider(color: AppColors.border, thickness: 1.5),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("TOTAL", style: GoogleFonts.pressStart2p(fontSize: 8, color: AppColors.textSecondary)),
+                          Text(
+                            "Rp ${data['total_harga']}", 
+                            style: GoogleFonts.inter(color: AppColors.accent, fontWeight: FontWeight.w900, fontSize: 18)
+                          ),
+                        ],
+                      ),
+                    ] else ...[
+                      const Icon(Icons.error_outline, color: AppColors.rejected, size: 40),
+                      const SizedBox(height: 10),
+                      Text("FAILED TO LOAD DATA", style: GoogleFonts.pressStart2p(fontSize: 8, color: AppColors.rejected)),
+                    ],
+                    
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: data == null ? null : () {
+                          context.read<OrderProvider>().downloadTicket(order.id);
+                        },
+                        icon: const Icon(Icons.download),
+                        label: const Text("DOWNLOAD PDF"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.secondary, 
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context), 
+                      child: Text(
+                        'CLOSE', 
+                        style: GoogleFonts.pressStart2p(fontSize: 8, color: AppColors.textSecondary)
+                      )
+                    ),
+                  ],
+                ),
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context), 
-                child: const Text('CLOSE', style: TextStyle(color: Colors.white54))
-              ),
-            ],
           );
         },
       ),
@@ -211,12 +278,21 @@ class _OrderCard extends StatelessWidget {
 
   Widget _ticketInfo(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text("$label:", style: const TextStyle(color: Colors.white38, fontSize: 11)),
-          Text(value, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w500)),
+          Text(label, style: GoogleFonts.pressStart2p(color: AppColors.textSecondary, fontSize: 7)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value, 
+              textAlign: TextAlign.right,
+              style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 12, fontWeight: FontWeight.bold),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );
@@ -230,24 +306,41 @@ class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color color;
+    String label = status.toUpperCase();
+
     switch (status.toLowerCase()) {
       case 'approved':
-      case 'paid': color = AppColors.approved; break;
+      case 'paid':
+        color = AppColors.approved;
+        break;
       case 'rejected':
-      case 'cancelled': color = AppColors.rejected; break;
-      default: color = AppColors.pending;
+      case 'cancelled':
+        color = AppColors.rejected;
+        break;
+      case 'pending':
+        color = AppColors.pending;
+        break;
+      default:
+        color = Colors.grey;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color),
+        color: color,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.border, width: 1.5),
+        boxShadow: const [
+          BoxShadow(color: AppColors.border, offset: Offset(2, 2)),
+        ],
       ),
       child: Text(
-        status.toUpperCase(),
-        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+        label,
+        style: GoogleFonts.pressStart2p(
+          color: color == AppColors.pending ? AppColors.textPrimary : Colors.white,
+          fontSize: 7,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }

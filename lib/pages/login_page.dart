@@ -22,50 +22,63 @@ class _LoginPageState extends State<LoginPage> {
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.secondary),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.go('/home'),
         ),
       ),
-      extendBodyBehindAppBar: true,
-      body: Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          color: AppColors.background,
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(30),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(30),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: 20),
-                Icon(Icons.rocket_launch, size: 80, color: AppColors.primary),
-                const SizedBox(height: 20),
-                Text(
-                  'LOGIN',
-                  style: GoogleFonts.orbitron(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w900,
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
                     color: AppColors.secondary,
-                    letterSpacing: 4,
-                    shadows: [
-                      const Shadow(color: AppColors.secondary, blurRadius: 15),
+                    border: Border.all(color: AppColors.border, width: 2),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: const [
+                      BoxShadow(color: AppColors.border, offset: Offset(6, 6)),
                     ],
+                  ),
+                  child: const Icon(Icons.bolt, size: 60, color: AppColors.textPrimary),
+                ),
+                const SizedBox(height: 30),
+                Text(
+                  'WELCOME BACK',
+                  style: GoogleFonts.pressStart2p(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textPrimary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Login to your account',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 40),
                 
                 // Role Toggle
                 Container(
-                  padding: const EdgeInsets.all(4),
+                  padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: Colors.grey[200],
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.secondary.withOpacity(0.3)),
+                    border: Border.all(color: AppColors.border, width: 1.5),
                   ),
                   child: Row(
                     children: [
@@ -86,27 +99,25 @@ class _LoginPageState extends State<LoginPage> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 24),
 
                 TextField(
                   controller: _emailController,
-                  style: const TextStyle(color: Colors.white),
                   decoration: const InputDecoration(
-                    labelText: 'EMAIL',
-                    prefixIcon: Icon(Icons.email_outlined, color: AppColors.secondary),
+                    labelText: 'EMAIL ADDRESS',
+                    prefixIcon: Icon(Icons.email_outlined),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
                 TextField(
                   controller: _passwordController,
                   obscureText: true,
-                  style: const TextStyle(color: Colors.white),
                   decoration: const InputDecoration(
                     labelText: 'PASSWORD',
-                    prefixIcon: Icon(Icons.lock_outline, color: AppColors.secondary),
+                    prefixIcon: Icon(Icons.lock_outline),
                   ),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 32),
                 
                 SizedBox(
                   width: double.infinity,
@@ -114,19 +125,23 @@ class _LoginPageState extends State<LoginPage> {
                       ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
                       : ElevatedButton(
                           onPressed: () async {
+                            final messenger = ScaffoldMessenger.of(context);
+                            final router = GoRouter.of(context);
+                            
                             final success = await authProvider.login(
                               _emailController.text,
                               _passwordController.text,
                               _selectedRole,
                             );
+                            
                             if (success) {
                               if (_selectedRole == 'admin') {
-                                context.go('/admin/dashboard');
+                                router.go('/admin/dashboard');
                               } else {
-                                context.go('/home');
+                                router.go('/home');
                               }
                             } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              messenger.showSnackBar(
                                 const SnackBar(
                                   backgroundColor: AppColors.rejected,
                                   content: Text('ACCESS DENIED: Check Credentials'),
@@ -134,20 +149,29 @@ class _LoginPageState extends State<LoginPage> {
                               );
                             }
                           },
-                          child: const Text('ENGAGE'),
+                          child: const Text('LOGIN NOW'),
                         ),
                 ),
-                const SizedBox(height: 30),
-                TextButton(
-                  onPressed: () => context.go('/register'),
-                  child: Text(
-                    'CREATE NEW ACCOUNT',
-                    style: TextStyle(
-                      color: AppColors.secondary.withOpacity(0.8),
-                      letterSpacing: 1.5,
-                      fontSize: 12,
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Don't have an account? ",
+                      style: GoogleFonts.inter(color: AppColors.textSecondary),
                     ),
-                  ),
+                    GestureDetector(
+                      onTap: () => context.go('/register'),
+                      child: Text(
+                        'SIGN UP',
+                        style: GoogleFonts.inter(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -169,19 +193,24 @@ class _RoleButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          gradient: isSelected ? AppColors.retroGradient : null,
+          color: isSelected ? AppColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
+          border: isSelected ? Border.all(color: AppColors.border, width: 1.5) : null,
+          boxShadow: isSelected ? [
+            const BoxShadow(color: AppColors.border, offset: Offset(2, 2)),
+          ] : null,
         ),
         child: Center(
           child: Text(
             label,
-            style: GoogleFonts.orbitron(
-              fontSize: 12,
+            style: GoogleFonts.pressStart2p(
+              fontSize: 10,
               fontWeight: FontWeight.bold,
-              color: isSelected ? Colors.white : Colors.white24,
+              color: isSelected ? Colors.white : AppColors.textSecondary,
             ),
           ),
         ),
