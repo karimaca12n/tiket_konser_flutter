@@ -143,7 +143,11 @@ class _ConcertDetailPageState extends State<ConcertDetailPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         _buildInfoItem(Icons.calendar_today, DateFormat('dd MMM yyyy').format(concert.date)),
-                        _buildInfoItem(Icons.access_time, '19:00'),
+                        _buildInfoItem(
+                          Icons.inventory_2_outlined, 
+                          (concert.jumlahBed ?? 0) <= 0 ? 'SOLD OUT' : '${concert.jumlahBed} LEFT',
+                          color: (concert.jumlahBed ?? 0) <= 0 ? AppColors.rejected : AppColors.primary,
+                        ),
                         _buildInfoItem(
                           Icons.confirmation_num, 
                           isExpired ? 'EXPIRED' : 'ACTIVE',
@@ -197,7 +201,7 @@ class _ConcertDetailPageState extends State<ConcertDetailPage> {
               child: SizedBox(
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: isExpired ? null : () async {
+                  onPressed: (isExpired || (concert.jumlahBed ?? 0) <= 0) ? null : () async {
                     if (!authProvider.isAuthenticated) {
                       context.push('/login');
                       return;
@@ -205,11 +209,11 @@ class _ConcertDetailPageState extends State<ConcertDetailPage> {
                     context.push('/payment', extra: concert);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isExpired ? Colors.grey[400] : AppColors.secondary,
+                    backgroundColor: (isExpired || (concert.jumlahBed ?? 0) <= 0) ? Colors.grey[400] : AppColors.secondary,
                     foregroundColor: AppColors.textPrimary,
                   ),
                   child: Text(
-                    isExpired ? "EXPIRED" : "BOOK NOW", 
+                    isExpired ? "EXPIRED" : ((concert.jumlahBed ?? 0) <= 0 ? "SOLD OUT" : "BOOK NOW"),
                     style: GoogleFonts.pressStart2p(fontSize: 10),
                   ),
                 ),

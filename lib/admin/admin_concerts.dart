@@ -87,8 +87,9 @@ class _AdminConcertsPageState extends State<AdminConcertsPage> {
     final isEdit = concert != null;
     final nameController = TextEditingController(text: concert?.name);
     final locationController = TextEditingController(text: concert?.location);
-    final priceController = TextEditingController(text: concert?.price.toInt().toString());
-    final descController = TextEditingController(text: concert?.description);
+    final stockController = TextEditingController(text: concert?.jumlahBed?.toString() ?? '0');
+    final priceController = TextEditingController(text: concert?.price.toString() ?? '');
+    final descController = TextEditingController(text: concert?.description ?? '');
     
     DateTime selectedDate = concert?.date ?? DateTime.now();
     final dateController = TextEditingController(
@@ -132,36 +133,20 @@ class _AdminConcertsPageState extends State<AdminConcertsPage> {
                   Row(
                     children: [
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('EVENT DATE', style: GoogleFonts.pressStart2p(fontSize: 8, color: AppColors.textSecondary)),
-                            const SizedBox(height: 8),
-                            TextField(
-                              controller: dateController,
-                              readOnly: true,
-                              style: GoogleFonts.inter(),
-                              decoration: const InputDecoration(
-                                suffixIcon: Icon(Icons.calendar_today, size: 18, color: AppColors.primary),
-                                isDense: true,
-                              ),
-                              onTap: () async {
-                                final DateTime? picked = await showDatePicker(
-                                  context: context,
-                                  initialDate: selectedDate,
-                                  firstDate: DateTime(2000),
-                                  lastDate: DateTime(2101),
-                                );
-                                if (picked != null) {
-                                  setDialogState(() {
-                                    selectedDate = picked;
-                                    dateController.text = DateFormat('yyyy-MM-dd').format(picked);
-                                  });
-                                }
-                              },
-                            ),
-                          ],
-                        ),
+                        child: _dialogField('EVENT DATE', dateController, readOnly: true, suffixIcon: const Icon(Icons.calendar_today, size: 18, color: AppColors.primary), onTap: () async {
+                          final DateTime? picked = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate,
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2101),
+                          );
+                          if (picked != null) {
+                            setDialogState(() {
+                              selectedDate = picked;
+                              dateController.text = DateFormat('yyyy-MM-dd').format(picked);
+                            });
+                          }
+                        }),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -170,7 +155,13 @@ class _AdminConcertsPageState extends State<AdminConcertsPage> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _dialogField('LOCATION', locationController),
+                  Row(
+                    children: [
+                      Expanded(child: _dialogField('LOCATION', locationController)),
+                      const SizedBox(width: 12),
+                      Expanded(child: _dialogField('STOCK', stockController, keyboardType: TextInputType.number)),
+                    ],
+                  ),
                   const SizedBox(height: 16),
                   _dialogField('DESCRIPTION', descController, maxLines: 3),
                   const SizedBox(height: 20),
@@ -221,6 +212,7 @@ class _AdminConcertsPageState extends State<AdminConcertsPage> {
                           'price': double.tryParse(priceController.text) ?? 0,
                           'description': descController.text,
                           'date': DateFormat('yyyy-MM-dd').format(selectedDate),
+                          'stock': int.tryParse(stockController.text) ?? 0,
                         };
                         bool success = isEdit 
                           ? await context.read<ConcertProvider>().updateConcert(concert!.id, data, selectedImage)
@@ -243,7 +235,7 @@ class _AdminConcertsPageState extends State<AdminConcertsPage> {
     );
   }
 
-  Widget _dialogField(String label, TextEditingController controller, {TextInputType? keyboardType, int maxLines = 1}) {
+  Widget _dialogField(String label, TextEditingController controller, {TextInputType? keyboardType, int maxLines = 1, bool readOnly = false, Widget? suffixIcon, VoidCallback? onTap}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -253,8 +245,13 @@ class _AdminConcertsPageState extends State<AdminConcertsPage> {
           controller: controller, 
           keyboardType: keyboardType,
           maxLines: maxLines,
+          readOnly: readOnly,
+          onTap: onTap,
           style: GoogleFonts.inter(),
-          decoration: const InputDecoration(isDense: true),
+          decoration: InputDecoration(
+            isDense: true,
+            suffixIcon: suffixIcon,
+          ),
         ),
       ],
     );

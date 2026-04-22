@@ -56,8 +56,8 @@ class ConcertProvider extends ChangeNotifier {
         'lokasi': data['location'],
         'tanggal': data['date'].toString().split(' ')[0], 
         'harga': data['price'].toString(),
-        'description': data['description'], // SEKARANG DIKIRIM
-        'jumlah_bed': '0',
+        'description': data['description'],
+        'jumlah_bed': data['stock']?.toString() ?? '0',
       };
 
       if (imageFile != null) {
@@ -95,8 +95,8 @@ class ConcertProvider extends ChangeNotifier {
         'lokasi': data['location'],
         'tanggal': data['date'].toString().split(' ')[0],
         'harga': data['price'].toString(),
-        'description': data['description'], // SEKARANG DIKIRIM
-        'jumlah_bed': '0',
+        'description': data['description'],
+        'jumlah_bed': data['stock']?.toString() ?? '0',
       };
 
       if (imageFile != null) {
