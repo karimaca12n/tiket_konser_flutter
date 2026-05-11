@@ -17,6 +17,7 @@ import 'package:tiket_konser/providers/auth_provider.dart';
 import 'package:tiket_konser/providers/concert_provider.dart';
 import 'package:tiket_konser/providers/order_provider.dart';
 import 'package:tiket_konser/pages/payment_page.dart';
+import 'package:tiket_konser/pages/splash_screen.dart';
 import 'package:tiket_konser/models/concert_model.dart';
 import 'package:tiket_konser/widgets/main_scaffold.dart';
 
@@ -34,8 +35,9 @@ void main() {
 }
 
 final GoRouter _router = GoRouter(
-  initialLocation: '/home',
+  initialLocation: '/',
   routes: [
+    GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
     GoRoute(path: '/register', builder: (context, state) => const RegisterPage()),
     

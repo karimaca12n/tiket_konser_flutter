@@ -15,6 +15,7 @@ SoraiFest adalah platform manajemen dan pemesanan tiket konser dengan estetika *
 ## 🚀 Key Features
 
 ### 1. User Side (Customer)
+- **Splash Screen**: Animasi pembuka bertema retro dengan branding SoraiFest.
 - **Authentication**: Registrasi dan Login akun pembeli (Security via JWT/Auth Provider).
 - **Concert Discovery**: Mencari konser berdasarkan nama atau lokasi dengan fitur search yang responsif.
 - **Concert Detail & Live Stock**: 
@@ -80,6 +81,7 @@ SoraiFest adalah platform manajemen dan pemesanan tiket konser dengan estetika *
     - `TC_01`: Verify "SOLD OUT" state when `jumlah_bed` = 0.
     - `TC_02`: Verify status update to `paid` updates "My Tickets" instantly.
     - `TC_03`: Verify PDF download triggers external browser/viewer.
+    - `TC_04`: Verify Splash Screen animation and auto-redirection to Home.
 - **Environment**: Development build on Android.
 
 ### 6. Relevant Test Metrics
