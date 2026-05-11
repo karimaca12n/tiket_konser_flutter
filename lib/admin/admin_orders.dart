@@ -122,9 +122,9 @@ class _AdminOrderCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () => provider.updateOrderStatus(order.id, 'approved'),
+                      onPressed: () => provider.updateOrderStatus(order.id, 'paid'),
                       icon: const Icon(Icons.check, size: 16),
-                      label: const Text('APPROVE'),
+                      label: const Text('CONFIRM'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.approved,
                         foregroundColor: Colors.white,
