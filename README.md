@@ -51,44 +51,46 @@ SoraiFest adalah platform manajemen dan pemesanan tiket konser dengan estetika *
 
 ## 🧪 SQA (Software Quality Assurance) & Testing Strategy
 
-### 1. Ideal Test Environment
-- **Client**: Android Emulator (API 34+) or Physical Device with `adb reverse tcp:8081 tcp:8081`.
-- **Backend**: Local PHP Server (CodeIgniter 4) running at `http://localhost:8081`.
-- **Database**: MySQL/MariaDB with `orders` ENUM support (`pending`, `paid`, `rejected`).
-- **Tools**: Flutter DevTools for UI inspection, Postman for API validation.
+### 1. Test Matrix (Requirement Traceability)
+Matriks ini digunakan untuk memastikan seluruh fitur utama telah teruji melalui skenario spesifik.
 
-### 2. Testing Techniques Implemented
-- **Black Box Testing**: Validating user flows (Login -> Search -> Book -> Pay) without internal code knowledge.
-- **Boundary Value Analysis (BVA)**: Testing `jumlah_bed` limits (e.g., buying the 0th or last ticket).
-- **Negative Testing**: Inputting invalid prices, booking past-dated concerts, or unauthorized API access.
-- **State Transition Testing**: Verifying Order Status flow: `pending` → `paid` (Approve) or `pending` → `rejected` (Reject).
+| ID | Module | Scenario Description | Expected Result | Priority |
+|:---|:---|:---|:---|:---|
+| **TM_01** | **Entry** | Cold start & Splash Screen duration check. | Redirect ke `/home` otomatis dalam 2.5 detik. | High |
+| **TM_02** | **Security** | Akses manual URL `/admin/*` tanpa login. | Redirect paksa ke `/login` (Unauthorized access). | Critical |
+| **TM_03** | **Auth** | Login menggunakan akun dengan role `admin`. | Masuk ke Admin Dashboard, bukan Home user. | High |
+| **TM_04** | **Inventory**| Set `jumlah_bed` = 0 via database/admin. | Tombol detail berubah menjadi "SOLD OUT" & disabled. | Critical |
+| **TM_05** | **Inventory**| Set `date` konser ke masa lampau (Yesterday). | Tombol detail berubah menjadi "EXPIRED". | High |
+| **TM_06** | **Search** | Input keyword yang tidak terdaftar di search bar. | Muncul state "NO CONCERTS FOUND". | Medium |
+| **TM_07** | **Order** | Klik "Pay Now" pada konser aktif. | Entry baru di database dengan status `pending`. | Critical |
+| **TM_08** | **Admin** | Klik "Confirm" pada pesanan user. | Status berubah menjadi `paid` & tiket muncul di User. | High |
+| **TM_09** | **PDF** | Klik "Download PDF" pada tiket berstatus `paid`. | Membuka browser eksternal ke URL API download. | Medium |
 
-### 3. Testing Tools
-- **Flutter Inspector**: Ensuring "Neubrutalism" UI alignment and shadow offsets.
-- **Dio Logger**: Intercepting request/response payloads for API integrity.
-- **Lints**: Static analysis using `flutter_lints` for modern Dart standards.
+### 2. Relevant Test Metrics
+Parameter kuantitatif untuk mengukur kualitas aplikasi SoraiFest:
+
+- **Test Case Pass Rate**: 
+    - *Target*: > 95% (Fitur kritikal/pembayaran harus 100% Pass).
+    - *Rumus*: `(Total Pass / Total Test Cases) * 100`.
+- **Defect Density**: 
+    - Mengukur jumlah bug per modul (fokus pada modul Admin & Order).
+- **UI/UX Fidelity Score**: 
+    - Konsistensi desain Neubrutalism (Border 3px, Shadow Offset 8x8) pada 100% komponen kartu.
+- **API Latency**: 
+    - Rata-rata waktu muat list konser (Target: < 500ms pada koneksi lokal).
+- **Critical Failure Frequency**: 
+    - Jumlah *Force Close* saat melakukan transaksi atau upload gambar besar.
+
+### 3. Testing Techniques Implemented
+- **Black Box Testing**: Validasi alur user (Login -> Search -> Book -> Pay).
+- **Boundary Value Analysis (BVA)**: Pengujian limit pada stok tiket (`jumlah_bed`).
+- **State Transition Testing**: Verifikasi siklus status order: `pending` → `paid` (Approve) atau `pending` → `rejected` (Reject).
+- **Negative Testing**: Simulasi akses ilegal ke dashboard admin dan input data tidak valid.
 
 ### 4. Risks to SoraiFest Application
-- **Race Condition**: Multiple simultaneous bookings when stock is at 1.
-- **Data Desync**: Local state not reflecting backend changes if `Provider` refresh fails.
-- **Platform Inconsistency**: PDF download behavior differences between Web and Android/iOS.
-- **Connectivity**: Application failure if the local API server is unreachable.
-
-### 5. Typical Components of Test Plan
-- **Test Objective**: Ensure seamless ticket procurement and admin verification.
-- **Scope**: Auth, Concert Discovery, Order Management, PDF Generation.
-- **Test Cases**: 
-    - `TC_01`: Verify "SOLD OUT" state when `jumlah_bed` = 0.
-    - `TC_02`: Verify status update to `paid` updates "My Tickets" instantly.
-    - `TC_03`: Verify PDF download triggers external browser/viewer.
-    - `TC_04`: Verify Splash Screen animation and auto-redirection to Home.
-- **Environment**: Development build on Android.
-
-### 6. Relevant Test Metrics
-- **Pass/Fail Rate**: Percentage of UI flows that complete without crashes.
-- **Defect Density**: Number of bugs identified per module (User vs Admin).
-- **API Latency**: Response time for fetching large concert lists.
-- **Test Coverage**: Proportion of `ConcertModel` and `OrderModel` fields validated.
+- **Race Condition**: Potensi double-booking jika stok sisa 1 dan diakses 2 user bersamaan.
+- **Data Desync**: State Provider tidak terupdate jika koneksi API terputus tiba-tiba.
+- **Platform Inconsistency**: Perbedaan handling download PDF antara Web dan Android.
 
 ---
 *Developed as part of the Modern Retro UI Restoration project.*
