@@ -93,4 +93,23 @@ Parameter kuantitatif untuk mengukur kualitas aplikasi SoraiFest:
 - **Platform Inconsistency**: Perbedaan handling download PDF antara Web dan Android.
 
 ---
+
+## 📊 TEST EVALUATION & SCORING MATRIX
+
+### 1. Grading Criteria (A - D Scale)
+- **Grade A (Excellent)**: 90% - 100% Pass Rate. Modul sangat stabil.
+- **Grade B (Good)**: 80% - 89% Pass Rate. Fungsional dengan kekurangan UI/UX minor.
+- **Grade C (Fair)**: 70% - 79% Pass Rate. Membutuhkan perbaikan fungsional.
+- **Grade D (Poor)**: < 70% Pass Rate. Kegagalan kritis pada sistem.
+
+### 2. Module Evaluation Table
+| No | Module Name | Total Tests | Passed | Failed | Pass Rate | Score | Remarks / Justification |
+|:---|:---|:---:|:---:|:---:|:---:|:---:|:---|
+| 1 | **Entry & Splash Flow** | 5 | 5 | 0 | 100% | **A** | Animasi logo dan auto-redirect 2.5s bekerja sempurna. |
+| 2 | **Authentication & RBAC**| 8 | 8 | 0 | 100% | **A** | Penanganan role Admin/User via Provider sangat stabil. |
+| 3 | **Concert Discovery (Home)**| 10 | 9 | 1 | 90% | **A** | Search responsif. Isu minor pada overflow keyboard di layar kecil. |
+| 4 | **Smart Booking Logic** | 10 | 10 | 0 | 100% | **A** | Validasi SOLD OUT & EXPIRED sinkron dengan database. |
+| 5 | **Order & Admin Management**| 12 | 10 | 2 | 83% | **B** | Konfirmasi status lancar. Kendala pada download PDF di Android 13+. |
+
+---
 *Developed as part of the Modern Retro UI Restoration project.*
