@@ -1,0 +1,43 @@
+name: SoraiFest CI/CD - SQA Automation
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test_and_build:
+    name: SQA Analysis, Testing & Android Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0' # Sesuaikan dengan versi Flutter Anda
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Static Analysis (SQA Linting)
+        run: flutter analyze
+        # Menjamin kode mengikuti standar Clean Code Flutter
+
+      - name: Run Unit & Widget Tests
+        run: flutter test
+        # Menjalankan smoke test dan logic test yang sudah kita buat
+
+      - name: Build Android APK (Compilation Test)
+        run: flutter build apk --debug
+        # Memastikan tidak ada error saat aplikasi di-bundle menjadi APK

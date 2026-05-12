@@ -92,6 +92,17 @@ Parameter kuantitatif untuk mengukur kualitas aplikasi SoraiFest:
 - **Data Desync**: State Provider tidak terupdate jika koneksi API terputus tiba-tiba.
 - **Platform Inconsistency**: Perbedaan handling download PDF antara Web dan Android.
 
+### 5. SQA Automation (CI/CD)
+Proyek ini telah dilengkapi dengan pipeline otomasi pengujian untuk menjaga integritas kode:
+
+- **GitHub Actions (Cloud Automation)**: 
+    - Setiap *push* ke branch `main` akan memicu workflow `.github/workflows/android_ci.yml`.
+    - Menjalankan `flutter analyze` untuk pengecekan kualitas kode.
+    - Menjalankan `flutter test` untuk validasi logika dan UI.
+    - Melakukan simulasi *build APK* untuk memastikan aplikasi siap rilis.
+- **Local Automation Script (`run_sqa.bat`)**:
+    - Script batch untuk menjalankan seluruh rangkaian pengujian (Clean, Pub Get, Analyze, Test) secara lokal dengan satu klik.
+
 ---
 
 ## 📊 TEST EVALUATION & SCORING MATRIX
