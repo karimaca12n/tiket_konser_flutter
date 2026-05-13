@@ -27,5 +27,8 @@ void main() {
 
     // Verify loading indicator is present
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
+
+    // Handle the timer in SplashScreen
+    await tester.pumpAndSettle(const Duration(seconds: 3));
   });
 }

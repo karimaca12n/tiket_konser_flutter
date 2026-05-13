@@ -19,7 +19,11 @@ class _AdminConcertsPageState extends State<AdminConcertsPage> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => context.read<ConcertProvider>().fetchConcerts());
+    Future.microtask(() {
+      if (mounted) {
+        context.read<ConcertProvider>().fetchConcerts();
+      }
+    });
   }
 
   @override
@@ -174,8 +178,8 @@ class _AdminConcertsPageState extends State<AdminConcertsPage> {
                         final file = result.files.first;
                         // SQA Boundary Test: Limit upload to 2MB
                         if (file.size > 2 * 1024 * 1024) {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
+                          if (dialogContext.mounted) {
+                            ScaffoldMessenger.of(dialogContext).showSnackBar(
                               SnackBar(
                                 backgroundColor: AppColors.rejected,
                                 content: Text('FILE TOO LARGE: Max 2MB allowed', 
@@ -196,7 +200,7 @@ class _AdminConcertsPageState extends State<AdminConcertsPage> {
                         border: Border.all(color: AppColors.border, width: 2),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: selectedImage != null
+                      child: selectedImage != null && selectedImage!.bytes != null
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(6),
                               child: Image.memory(selectedImage!.bytes!, fit: BoxFit.cover),
@@ -233,7 +237,7 @@ class _AdminConcertsPageState extends State<AdminConcertsPage> {
                         bool success = isEdit 
                           ? await context.read<ConcertProvider>().updateConcert(concert!.id, data, selectedImage)
                           : await context.read<ConcertProvider>().addConcert(data, selectedImage);
-                        if (success && context.mounted) Navigator.pop(context);
+                        if (success && dialogContext.mounted) Navigator.pop(dialogContext);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isEdit ? AppColors.approved : AppColors.primary,
