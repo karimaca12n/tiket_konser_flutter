@@ -170,7 +170,23 @@ class _AdminConcertsPageState extends State<AdminConcertsPage> {
                   InkWell(
                     onTap: () async {
                       final result = await FilePicker.platform.pickFiles(type: FileType.image);
-                      if (result != null) setDialogState(() => selectedImage = result.files.first);
+                      if (result != null) {
+                        final file = result.files.first;
+                        // SQA Boundary Test: Limit upload to 2MB
+                        if (file.size > 2 * 1024 * 1024) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: AppColors.rejected,
+                                content: Text('FILE TOO LARGE: Max 2MB allowed', 
+                                  style: GoogleFonts.pressStart2p(fontSize: 8, color: Colors.white)),
+                              ),
+                            );
+                          }
+                          return;
+                        }
+                        setDialogState(() => selectedImage = file);
+                      }
                     },
                     child: Container(
                       height: 120,

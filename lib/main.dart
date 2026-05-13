@@ -73,6 +73,10 @@ final GoRouter _router = GoRouter(
       return '/login';
     }
     
+    if (auth.isAuthenticated && state.matchedLocation.startsWith('/admin') && !auth.isAdmin) {
+      return '/home';
+    }
+
     if (auth.isAuthenticated && loggingIn) {
       return auth.isAdmin ? '/admin/dashboard' : '/home';
     }

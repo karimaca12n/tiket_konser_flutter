@@ -217,7 +217,12 @@ class _PaymentPageState extends State<PaymentPage> {
           child: ElevatedButton(
             onPressed: _isLoading ? null : () async {
               setState(() => _isLoading = true);
-              final success = await orderProvider.createOrder(widget.concert, authProvider.user!.id);
+              // SQA DATA INTEGRITY: Ensure total price includes admin fee (2500)
+              final totalWithFee = widget.concert.price + 2500;
+              final success = await orderProvider.createOrder(
+                widget.concert.copyWith(price: totalWithFee), 
+                authProvider.user!.id
+              );
               setState(() => _isLoading = false);
               
               if (success) {

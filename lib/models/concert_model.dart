@@ -19,6 +19,28 @@ class ConcertModel {
     this.jumlahBed,
   });
 
+  ConcertModel copyWith({
+    String? id,
+    String? name,
+    DateTime? date,
+    String? location,
+    String? description,
+    String? image,
+    double? price,
+    int? jumlahBed,
+  }) {
+    return ConcertModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      date: date ?? this.date,
+      location: location ?? this.location,
+      description: description ?? this.description,
+      image: image ?? this.image,
+      price: price ?? this.price,
+      jumlahBed: jumlahBed ?? this.jumlahBed,
+    );
+  }
+
   factory ConcertModel.fromJson(Map<String, dynamic> json) {
     double parsePrice(dynamic val) {
       if (val == null) return 0.0;

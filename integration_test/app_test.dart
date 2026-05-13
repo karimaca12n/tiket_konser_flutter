@@ -8,45 +8,50 @@ void main() {
 
   group('SoraiFest SQA End-to-End Test', () {
     testWidgets('Full Cycle: Login -> Dashboard -> Logout', (tester) async {
+      // 1. Jalankan Aplikasi
       app.main();
       await tester.pumpAndSettle();
 
-      // 1. Splash Screen
+      // 2. Splash Screen Delay (Menunggu animasi logo selesai)
       await Future.delayed(const Duration(seconds: 3));
       await tester.pumpAndSettle();
 
-      // 2. Redirect to Login (Simulasi akses halaman terproteksi)
-      await tester.tap(find.byIcon(Icons.confirmation_number_outlined)); // Klik menu tiket
+      // 3. Test Security Redirect (Triggered by clicking 'TIKET' tab)
+      // Mencoba akses menu pesanan tanpa login
+      await tester.tap(find.byIcon(Icons.confirmation_number_outlined)); 
       await tester.pumpAndSettle();
+      
+      // Verifikasi apakah diredirect ke halaman login (Terdapat teks 'WELCOME BACK')
       expect(find.text('WELCOME BACK'), findsOneWidget);
 
-      // 3. Automation Login
+      // 4. Automation Login (Sesuai dengan controller di login_page.dart)
+      // TextField indeks 0 = Email, indeks 1 = Password
       await tester.enterText(find.byType(TextField).at(0), 'user@example.com');
       await tester.enterText(find.byType(TextField).at(1), 'password123');
-      await tester.tap(find.text('LOGIN'));
+      
+      // Klik tombol 'LOGIN NOW' (Teks harus persis dengan LoginPage)
+      await tester.tap(find.text('LOGIN NOW'));
       await tester.pumpAndSettle();
 
-      // Tunggu transisi ke Home setelah login
+      // Menunggu proses API login dan transisi navigasi
       await Future.delayed(const Duration(seconds: 2));
       await tester.pumpAndSettle();
 
-      // 4. Automation Logout
-      // Cari icon Person/Profile di Bottom Nav (asumsi icon person)
+      // 5. Automation Logout
+      // Berpindah ke Tab Profile/Akun (Icons.person_outline di MainScaffold)
       final profileTab = find.byIcon(Icons.person_outline);
-      if (profileTab.evaluate().isNotEmpty) {
-        await tester.tap(profileTab);
-        await tester.pumpAndSettle();
+      await tester.tap(profileTab);
+      await tester.pumpAndSettle();
 
-        // Cari tombol LOGOUT di halaman profil
-        final logoutBtn = find.text('LOGOUT');
-        if (logoutBtn.evaluate().isNotEmpty) {
-          await tester.tap(logoutBtn);
-          await tester.pumpAndSettle();
-          
-          // Verifikasi kembali ke halaman Login
-          expect(find.text('WELCOME BACK'), findsOneWidget);
-        }
-      }
+      // Menekan tombol LOGOUT di halaman profil
+      final logoutBtn = find.text('LOGOUT');
+      expect(logoutBtn, findsOneWidget); 
+      
+      await tester.tap(logoutBtn);
+      await tester.pumpAndSettle();
+      
+      // Verifikasi Akhir: Berhasil logout dan kembali ke halaman Login
+      expect(find.text('WELCOME BACK'), findsOneWidget);
     });
   });
 }

@@ -228,7 +228,23 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _pickImage() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.image);
     if (result != null) {
-      setState(() => _selectedImage = result.files.first);
+      final file = result.files.first;
+      
+      // SQA Boundary Test: Limit upload to 2MB to prevent server timeout/error
+      if (file.size > 2 * 1024 * 1024) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: AppColors.rejected,
+              content: Text('FILE TOO LARGE: Max 2MB allowed', 
+                style: GoogleFonts.pressStart2p(fontSize: 8, color: Colors.white)),
+            ),
+          );
+        }
+        return;
+      }
+      
+      setState(() => _selectedImage = file);
     }
   }
 
